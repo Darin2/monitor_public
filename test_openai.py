@@ -1,8 +1,12 @@
 import os
 import sqlite3
+import warnings
 from datetime import datetime
 from openai import OpenAI
 from dotenv import load_dotenv
+
+# Suppress Pydantic serialization warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='pydantic')
 
 # Load environment variables from .env file
 load_dotenv()
