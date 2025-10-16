@@ -9,19 +9,20 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Test query
-query = "Find paintball events in Texas in 2025"
+query = "Find paintball events in Texas in 2025. List any websites you referenced when searching. Format your response as JSON"
 
 print(f"Sending query: {query}\n")
 
-# Make API call
-response = client.chat.completions.create(
-    model="gpt-4",  # Change to "gpt-3.5-turbo" if you don't have GPT-4 access
-    messages=[
-        {"role": "user", "content": query}
-    ]
+# Make API call with web search enabled
+response = client.responses.create(
+    model="gpt-4o",
+    tools=[
+        {"type": "web_search"}
+    ],
+    input=query
 )
 
 # Print the response
 print("Response:")
-print(response.choices[0].message.content)
+print(response.output_text)
 
