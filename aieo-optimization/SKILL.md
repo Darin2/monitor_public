@@ -1,9 +1,6 @@
 ---
-name: "AIEO Optimization"
-description: "Optimize content for AI search engines (ChatGPT, Perplexity, Claude, Google AI Overviews). Use when creating web content, landing pages, blog posts, tutorials, or any public-facing content that should rank in AI search results. Includes schema markup patterns, content templates, and validation tools."
-version: "0.1.0"
-author: "Darin Hardin"
-tags: ["seo", "aieo", "content-optimization", "schema", "ai-search"]
+name: aieo-optimization
+description: Structure and optimize content to rank in AI search engines using schema markup, structured formats, and citation-friendly patterns.
 ---
 
 # AIEO Optimization Skill
