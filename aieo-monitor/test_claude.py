@@ -43,6 +43,7 @@ def init_database():
 
 # Extract search query and cited URLs from response metadata
 def extract_metadata(response):
+    import re
     search_query = None
     cited_urls = []
     
@@ -55,22 +56,37 @@ def extract_metadata(response):
                 if hasattr(block, 'input') and 'query' in block.input:
                     search_query = block.input['query']
         
-        # Check for text blocks that might contain citations
+        # Check for text blocks that might contain citations or URLs
         if hasattr(block, 'type') and block.type == 'text':
-            # We'll need to parse citations from the text if Claude includes them
-            # This might need adjustment based on how Claude returns web search results
-            pass
-    
-    # Note: Citation extraction may need to be updated based on Claude's actual response format
-    # You may need to adjust this after seeing what the actual response looks like
+            # Extract URLs from the text content using regex
+            text = block.text
+            # Find all URLs in the text (http or https)
+            urls_with_protocol = re.findall(r'https?://[^\s\)>\]]+', text)
+            # Also find domain names without protocol (e.g., "example.com")
+            urls_without_protocol = re.findall(r'(?<![/@\w])([a-zA-Z0-9-]+\.(?:com|net|org|edu|gov|io|co)[^\s\)>\]]*)', text)
+            
+            # Combine both lists
+            all_urls = urls_with_protocol + list(urls_without_protocol)
+            
+            for url in all_urls:
+                # Clean up URL (remove trailing punctuation)
+                clean_url = url.rstrip('.,;:!?')
+                # Remove utm_source parameter for cleaner URLs
+                clean_url = clean_url.split('?utm_source')[0]
+                if clean_url not in cited_urls:
+                    cited_urls.append(clean_url)
     
     return search_query, cited_urls
 
-# Check if paintballevents.net is in the cited URLs
-def check_paintballevents_reference(cited_urls):
+# Check if paintballevents.net is in the cited URLs or response text
+def check_paintballevents_reference(cited_urls, response_text):
+    # Check in cited URLs (looking specifically for paintballevents.net)
     for url in cited_urls:
         if 'paintballevents.net' in url.lower():
             return True
+    # Also check in the response text directly (for paintballevents.net)
+    if 'paintballevents.net' in response_text.lower():
+        return True
     return False
 
 # Store response in database
@@ -111,7 +127,7 @@ query = TEST_QUERIES[0]  # Currently testing query #0
 print(f"Testing Query #{TEST_QUERIES.index(query)}: {query}\n")
 
 # Define model to use
-model = "claude-3-5-sonnet-20241022"
+model = "claude-3-7-sonnet-20250219"
 
 # Make API call with web search enabled
 # Note: Claude's API structure is different from OpenAI's
@@ -120,9 +136,8 @@ response = client.messages.create(
     max_tokens=4096,
     tools=[
         {
-            "type": "web_search",
-            "name": "web_search",
-            "description": "Search the web for information"
+            "type": "web_search_20250305",
+            "name": "web_search"
         }
     ],
     messages=[
@@ -142,8 +157,8 @@ print(response_text)
 # Extract metadata (search query and cited URLs)
 search_query, cited_urls = extract_metadata(response)
 
-# Check if paintballevents.net was referenced in the cited URLs
-paintballevents_ref = check_paintballevents_reference(cited_urls)
+# Check if paintballevents.net was referenced in the cited URLs or response text
+paintballevents_ref = check_paintballevents_reference(cited_urls, response_text)
 
 # Store in database
 store_response(conn, query, response_text, paintballevents_ref, search_query, cited_urls, model)
