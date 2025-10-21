@@ -95,11 +95,7 @@ conn = init_database()
 
 # Test queries - try different variations to see which ones surface paintballevents.net
 TEST_QUERIES = [
-    "Find paintball events in Texas in 2025",
-    "Find paintball events in Texas in 2025 and list the websites you searched",
-    "What paintball tournaments are happening in Texas in 2025?",
-    "Find upcoming paintball scenario games and tournaments in Texas for 2025",
-    "Where can I find paintball events in Texas?",
+    "Find paintball events in Texas in 2025 and list the websites you searched"
 ]
 
 # Choose which query to test (change the index to test different queries)
