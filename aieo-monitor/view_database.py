@@ -65,8 +65,35 @@ print(f"  PaintballEvents.net cited: {count_with_reference}")
 print(f"  Citation rate: {(count_with_reference/total_count*100) if total_count > 0 else 0:.1f}%")
 print(f"{'='*80}\n")
 
-# Query pattern analysis
+# Model performance analysis
 print(f"\n{'='*80}")
+print(f"MODEL PERFORMANCE ANALYSIS:")
+print(f"{'='*80}\n")
+
+cursor.execute('''
+    SELECT 
+        model,
+        COUNT(*) as times_tested,
+        SUM(paintballevents_referenced) as times_cited,
+        ROUND(CAST(SUM(paintballevents_referenced) AS FLOAT) / COUNT(*) * 100, 1) as citation_rate
+    FROM responses
+    WHERE model IS NOT NULL
+    GROUP BY model
+    ORDER BY times_tested DESC
+''')
+
+models = cursor.fetchall()
+if models:
+    for model, times_tested, times_cited, citation_rate in models:
+        print(f"Model: {model}")
+        print(f"  Tested: {times_tested} times")
+        print(f"  Cited: {times_cited} times ({citation_rate}%)")
+        print()
+else:
+    print("No model data available.\n")
+
+# Query pattern analysis
+print(f"{'='*80}")
 print(f"QUERY PATTERN ANALYSIS:")
 print(f"{'='*80}\n")
 
@@ -87,6 +114,38 @@ for query, times_tested, times_cited, citation_rate in patterns:
     print(f"  Tested: {times_tested} times")
     print(f"  Cited: {times_cited} times ({citation_rate}%)")
     print()
+
+# Query + Model combination analysis
+print(f"{'='*80}")
+print(f"QUERY + MODEL COMBINATION ANALYSIS:")
+print(f"{'='*80}\n")
+
+cursor.execute('''
+    SELECT 
+        query,
+        model,
+        COUNT(*) as times_tested,
+        SUM(paintballevents_referenced) as times_cited,
+        ROUND(CAST(SUM(paintballevents_referenced) AS FLOAT) / COUNT(*) * 100, 1) as citation_rate
+    FROM responses
+    WHERE model IS NOT NULL
+    GROUP BY query, model
+    ORDER BY query, model
+''')
+
+combinations = cursor.fetchall()
+if combinations:
+    current_query = None
+    for query, model, times_tested, times_cited, citation_rate in combinations:
+        if query != current_query:
+            if current_query is not None:
+                print()
+            print(f"Query: {query[:60]}{'...' if len(query) > 60 else ''}")
+            current_query = query
+        print(f"  {model}: {times_tested} tests, {times_cited} citations ({citation_rate}%)")
+    print()
+else:
+    print("No combination data available.\n")
 
 conn.close()
 
