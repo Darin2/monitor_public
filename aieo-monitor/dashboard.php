@@ -85,6 +85,35 @@ while ($row = $recentResults->fetchArray(SQLITE3_ASSOC)) {
     $recentData[] = $row;
 }
 
+// Get detailed query breakdown
+$detailedQuery = "
+    SELECT 
+        query,
+        model,
+        COUNT(*) as times_tested,
+        SUM(paintballevents_referenced) as times_cited,
+        ROUND(CAST(SUM(paintballevents_referenced) AS FLOAT) / COUNT(*) * 100, 1) as citation_rate,
+        GROUP_CONCAT(id) as response_ids
+    FROM responses
+    GROUP BY query, model
+    ORDER BY query, model
+";
+$detailedResults = $db->query($detailedQuery);
+$detailedData = [];
+while ($row = $detailedResults->fetchArray(SQLITE3_ASSOC)) {
+    $query = $row['query'];
+    if (!isset($detailedData[$query])) {
+        $detailedData[$query] = [
+            'total_tests' => 0,
+            'total_citations' => 0,
+            'models' => []
+        ];
+    }
+    $detailedData[$query]['total_tests'] += $row['times_tested'];
+    $detailedData[$query]['total_citations'] += $row['times_cited'];
+    $detailedData[$query]['models'][] = $row;
+}
+
 $db->close();
 ?>
 <!DOCTYPE html>
@@ -103,7 +132,7 @@ $db->close();
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a4d2e 0%, #0d2818 100%);
             min-height: 100vh;
             padding: 20px;
             color: #333;
@@ -157,7 +186,7 @@ $db->close();
             font-size: 0.9em;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: #667eea;
+            color: #1a4d2e;
             margin-bottom: 10px;
             font-weight: 600;
         }
@@ -218,7 +247,7 @@ $db->close();
         }
         
         th {
-            background: #667eea;
+            background: #1a4d2e;
             color: white;
             padding: 12px;
             text-align: left;
@@ -234,7 +263,7 @@ $db->close();
         }
         
         tr:hover {
-            background: #f8f9ff;
+            background: #f1f8f4;
         }
         
         .badge {
@@ -256,8 +285,8 @@ $db->close();
         }
         
         .model-tag {
-            background: #e7f3ff;
-            color: #0066cc;
+            background: #d4edda;
+            color: #1a4d2e;
             padding: 3px 10px;
             border-radius: 12px;
             font-size: 0.85em;
@@ -267,6 +296,144 @@ $db->close();
         .timestamp {
             color: #666;
             font-size: 0.9em;
+        }
+        
+        .query-breakdown {
+            margin-bottom: 30px;
+        }
+        
+        .query-item {
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .query-item:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        .query-header {
+            padding: 20px 25px;
+            background: linear-gradient(135deg, #1a4d2e 0%, #0d2818 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .query-header:hover {
+            opacity: 0.95;
+        }
+        
+        .query-title {
+            font-size: 1.05em;
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .query-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .query-stat {
+            text-align: center;
+            padding: 5px 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .query-stat-value {
+            font-weight: 700;
+            font-size: 1.3em;
+        }
+        
+        .query-stat-label {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+        
+        .toggle-icon {
+            font-size: 1.5em;
+            transition: transform 0.3s ease;
+        }
+        
+        .query-item.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .query-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .query-item.active .query-content {
+            max-height: 1000px;
+        }
+        
+        .query-models {
+            padding: 25px;
+        }
+        
+        .model-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f1f8f4;
+            border-radius: 10px;
+            align-items: center;
+        }
+        
+        .model-row:hover {
+            background: #e8f5e9;
+        }
+        
+        .model-name {
+            font-weight: 600;
+            color: #1a4d2e;
+        }
+        
+        .model-metric {
+            text-align: center;
+        }
+        
+        .model-metric-value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .model-metric-label {
+            font-size: 0.8em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ed573 0%, #26de81 100%);
+            transition: width 0.3s ease;
         }
         
         @media (max-width: 768px) {
@@ -290,6 +457,20 @@ $db->close();
                 padding: 8px;
                 font-size: 0.9em;
             }
+            
+            .model-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .query-stat {
+                font-size: 0.8em;
+                padding: 4px 10px;
+            }
+            
+            .query-stats {
+                gap: 10px;
+            }
         }
         
         @media (max-width: 600px) {
@@ -310,61 +491,127 @@ $db->close();
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 AIEO Monitor Dashboard</h1>
-            <p>PaintballEvents.net Citation Analysis</p>
+            <h1>AIEO Monitor Dashboard</h1>
+            <p>paintballevents.net Citation Analysis</p>
         </div>
         
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Total Queries</h3>
                 <div class="value"><?php echo $totalQueries; ?></div>
-                <div class="label">API Calls Made</div>
+                <div class="label">API calls made</div>
             </div>
             
             <div class="stat-card">
                 <h3>Citations Found</h3>
                 <div class="value"><?php echo $citedQueries; ?></div>
-                <div class="label">Times PaintballEvents.net Cited</div>
+                <div class="label">Times paintballevents.net cited</div>
             </div>
             
             <div class="stat-card">
                 <h3>Citation Rate</h3>
                 <div class="value"><?php echo $citationRate; ?>%</div>
-                <div class="label">Overall Performance</div>
+                <div class="label">Overall performance</div>
             </div>
             
             <div class="stat-card">
                 <h3>Models Tested</h3>
                 <div class="value"><?php echo count($modelData); ?></div>
-                <div class="label">AI Models Compared</div>
+                <div class="label">AI models compared</div>
             </div>
         </div>
         
         <div class="chart-grid">
             <div class="chart-card">
-                <h2>📊 Model Performance</h2>
+                <h2>Model Performance</h2>
                 <div class="chart-container">
                     <canvas id="modelChart"></canvas>
                 </div>
             </div>
             
             <div class="chart-card">
-                <h2>🎯 Citation Rate by Model</h2>
+                <h2>Citation Rate by Model</h2>
                 <div class="chart-container">
                     <canvas id="citationRateChart"></canvas>
                 </div>
             </div>
             
             <div class="chart-card full-width">
-                <h2>📝 Top Query Patterns</h2>
+                <h2>Top Query Patterns</h2>
                 <div class="chart-container" style="height: 400px;">
                     <canvas id="queryChart"></canvas>
                 </div>
             </div>
         </div>
         
+        <div class="query-breakdown">
+            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <h2 style="margin-bottom: 10px;">Detailed Query Breakdown</h2>
+                <p style="color: #666; margin-bottom: 20px;">Click on any query to expand and see model-specific performance</p>
+            </div>
+            
+            <?php foreach ($detailedData as $query => $data): 
+                $overallRate = $data['total_tests'] > 0 ? round(($data['total_citations'] / $data['total_tests']) * 100, 1) : 0;
+            ?>
+            <div class="query-item">
+                <div class="query-header" onclick="toggleQuery(this)">
+                    <div class="query-title"><?php echo htmlspecialchars($query); ?></div>
+                    <div class="query-stats">
+                        <div class="query-stat">
+                            <div class="query-stat-value"><?php echo $data['total_tests']; ?></div>
+                            <div class="query-stat-label">Tests</div>
+                        </div>
+                        <div class="query-stat">
+                            <div class="query-stat-value"><?php echo $data['total_citations']; ?></div>
+                            <div class="query-stat-label">Citations</div>
+                        </div>
+                        <div class="query-stat">
+                            <div class="query-stat-value"><?php echo $overallRate; ?>%</div>
+                            <div class="query-stat-label">Rate</div>
+                        </div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                </div>
+                <div class="query-content">
+                    <div class="query-models">
+                        <?php foreach ($data['models'] as $model): ?>
+                        <div class="model-row">
+                            <div class="model-name">
+                                <?php 
+                                $modelName = $model['model'] ?? 'Unknown';
+                                $displayName = str_replace(
+                                    ['claude-3-7-sonnet-20250219', 'gpt-4o'],
+                                    ['Claude 3.7 Sonnet', 'GPT-4o'],
+                                    $modelName
+                                );
+                                echo htmlspecialchars($displayName);
+                                ?>
+                            </div>
+                            <div class="model-metric">
+                                <div class="model-metric-value"><?php echo $model['times_tested']; ?></div>
+                                <div class="model-metric-label">Tests</div>
+                            </div>
+                            <div class="model-metric">
+                                <div class="model-metric-value"><?php echo $model['times_cited']; ?></div>
+                                <div class="model-metric-label">Citations</div>
+                            </div>
+                            <div class="model-metric">
+                                <div class="model-metric-value"><?php echo $model['citation_rate']; ?>%</div>
+                                <div class="model-metric-label">Rate</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: <?php echo $model['citation_rate']; ?>%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        
         <div class="table-container">
-            <h2 style="margin-bottom: 20px;">📋 Recent Queries</h2>
+            <h2 style="margin-bottom: 20px;">Recent Queries</h2>
             <table>
                 <thead>
                     <tr>
@@ -399,6 +646,12 @@ $db->close();
     </div>
     
     <script>
+        // Toggle query expansion
+        function toggleQuery(header) {
+            const queryItem = header.parentElement;
+            queryItem.classList.toggle('active');
+        }
+        
         // Model Performance Chart
         const modelData = <?php echo json_encode($modelData); ?>;
         const modelLabels = modelData.map(m => m.model ? m.model.replace('claude-3-7-sonnet-20250219', 'Claude 3.7').replace('gpt-4o', 'GPT-4o') : 'Unknown');
@@ -413,16 +666,16 @@ $db->close();
                     {
                         label: 'Tests Run',
                         data: modelTests,
-                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(26, 77, 46, 0.8)',
+                        borderColor: 'rgba(26, 77, 46, 1)',
                         borderWidth: 2,
                         borderRadius: 8
                     },
                     {
                         label: 'Citations Found',
                         data: modelCitations,
-                        backgroundColor: 'rgba(46, 213, 115, 0.8)',
-                        borderColor: 'rgba(46, 213, 115, 1)',
+                        backgroundColor: 'rgba(76, 175, 80, 0.8)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
                         borderWidth: 2,
                         borderRadius: 8
                     }
@@ -464,10 +717,10 @@ $db->close();
                 datasets: [{
                     data: citationRates,
                     backgroundColor: [
-                        'rgba(102, 126, 234, 0.8)',
-                        'rgba(118, 75, 162, 0.8)',
-                        'rgba(46, 213, 115, 0.8)',
-                        'rgba(255, 159, 64, 0.8)'
+                        'rgba(26, 77, 46, 0.8)',
+                        'rgba(13, 40, 24, 0.8)',
+                        'rgba(76, 175, 80, 0.8)',
+                        'rgba(129, 199, 132, 0.8)'
                     ],
                     borderWidth: 3,
                     borderColor: '#fff'
@@ -512,16 +765,16 @@ $db->close();
                     {
                         label: 'Tests Run',
                         data: queryTests,
-                        backgroundColor: 'rgba(102, 126, 234, 0.6)',
-                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(26, 77, 46, 0.6)',
+                        borderColor: 'rgba(26, 77, 46, 1)',
                         borderWidth: 2,
                         borderRadius: 8
                     },
                     {
                         label: 'Citations Found',
                         data: queryCitations,
-                        backgroundColor: 'rgba(46, 213, 115, 0.6)',
-                        borderColor: 'rgba(46, 213, 115, 1)',
+                        backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
                         borderWidth: 2,
                         borderRadius: 8
                     }
