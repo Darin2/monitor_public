@@ -27,9 +27,18 @@ def init_database():
             response TEXT NOT NULL,
             paintballevents_referenced BOOLEAN NOT NULL,
             search_query TEXT,
-            cited_urls TEXT
+            cited_urls TEXT,
+            model TEXT
         )
     ''')
+    
+    # Check if model column exists, add it if it doesn't (for existing databases)
+    cursor.execute("PRAGMA table_info(responses)")
+    columns = [column[1] for column in cursor.fetchall()]
+    if 'model' not in columns:
+        cursor.execute('ALTER TABLE responses ADD COLUMN model TEXT')
+        print("✓ Added 'model' column to existing database")
+    
     conn.commit()
     return conn
 
@@ -69,7 +78,7 @@ def check_paintballevents_reference(cited_urls):
     return False
 
 # Store response in database
-def store_response(conn, query, response_text, paintballevents_ref, search_query, cited_urls):
+def store_response(conn, query, response_text, paintballevents_ref, search_query, cited_urls, model):
     cursor = conn.cursor()
     timestamp = datetime.now().isoformat()
     
@@ -78,13 +87,14 @@ def store_response(conn, query, response_text, paintballevents_ref, search_query
     cited_urls_json = json.dumps(cited_urls)
     
     cursor.execute('''
-        INSERT INTO responses (timestamp, query, response, paintballevents_referenced, search_query, cited_urls)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (timestamp, query, response_text, paintballevents_ref, search_query, cited_urls_json))
+        INSERT INTO responses (timestamp, query, response, paintballevents_referenced, search_query, cited_urls, model)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (timestamp, query, response_text, paintballevents_ref, search_query, cited_urls_json, model))
     conn.commit()
     
     print(f"\n✓ Response stored in database (ID: {cursor.lastrowid})")
     print(f"  Timestamp: {timestamp}")
+    print(f"  Model: {model}")
     print(f"  Search query used: {search_query}")
     print(f"  URLs cited: {len(cited_urls)}")
     for url in cited_urls:
@@ -110,9 +120,12 @@ for idx, query in enumerate(TEST_QUERIES):
     print(f"{'='*80}\n")
     
     try:
+        # Define model to use
+        model = "gpt-4o"
+        
         # Make API call with web search enabled
         response = client.responses.create(
-            model="gpt-4o",
+            model=model,
             tools=[
                 {"type": "web_search"}
             ],
@@ -131,7 +144,7 @@ for idx, query in enumerate(TEST_QUERIES):
         paintballevents_ref = check_paintballevents_reference(cited_urls)
         
         # Store in database
-        store_response(conn, query, response_text, paintballevents_ref, search_query, cited_urls)
+        store_response(conn, query, response_text, paintballevents_ref, search_query, cited_urls, model)
         
         # Wait a bit between queries to be respectful to the API
         if idx < len(TEST_QUERIES) - 1:

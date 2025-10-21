@@ -15,13 +15,21 @@ print(f"STORED RESPONSES: {len(rows)} total")
 print(f"{'='*80}\n")
 
 for row in rows:
-    # Handle both old and new schema
+    # Handle different schema versions
     if len(row) == 5:
+        # Original schema (no search_query, cited_urls, or model)
         id, timestamp, query, response, paintballevents_ref = row
         search_query = None
         cited_urls = []
-    else:
+        model = None
+    elif len(row) == 7:
+        # Schema with search_query and cited_urls (no model)
         id, timestamp, query, response, paintballevents_ref, search_query, cited_urls_json = row
+        cited_urls = json.loads(cited_urls_json) if cited_urls_json else []
+        model = None
+    else:
+        # Current schema with model column
+        id, timestamp, query, response, paintballevents_ref, search_query, cited_urls_json, model = row
         cited_urls = json.loads(cited_urls_json) if cited_urls_json else []
     
     # Parse and format timestamp
@@ -31,6 +39,8 @@ for row in rows:
     print(f"ID: {id}")
     print(f"Timestamp: {formatted_time}")
     print(f"Query: {query}")
+    if model:
+        print(f"Model: {model}")
     if search_query:
         print(f"Search Query Used: {search_query}")
     print(f"PaintballEvents.net Cited: {'✓ YES' if paintballevents_ref else '✗ NO'}")
@@ -51,8 +61,8 @@ total_count = cursor.fetchone()[0]
 print(f"\n{'='*80}")
 print(f"SUMMARY:")
 print(f"  Total queries: {total_count}")
-print(f"  PaintballEvents.net referenced: {count_with_reference}")
-print(f"  Reference rate: {(count_with_reference/total_count*100) if total_count > 0 else 0:.1f}%")
+print(f"  PaintballEvents.net cited: {count_with_reference}")
+print(f"  Citation rate: {(count_with_reference/total_count*100) if total_count > 0 else 0:.1f}%")
 print(f"{'='*80}\n")
 
 # Query pattern analysis
@@ -64,18 +74,18 @@ cursor.execute('''
     SELECT 
         query,
         COUNT(*) as times_tested,
-        SUM(paintballevents_referenced) as times_referenced,
-        ROUND(CAST(SUM(paintballevents_referenced) AS FLOAT) / COUNT(*) * 100, 1) as reference_rate
+        SUM(paintballevents_referenced) as times_cited,
+        ROUND(CAST(SUM(paintballevents_referenced) AS FLOAT) / COUNT(*) * 100, 1) as citation_rate
     FROM responses
     GROUP BY query
     ORDER BY times_tested DESC
 ''')
 
 patterns = cursor.fetchall()
-for query, times_tested, times_referenced, reference_rate in patterns:
+for query, times_tested, times_cited, citation_rate in patterns:
     print(f"Query: {query[:60]}{'...' if len(query) > 60 else ''}")
     print(f"  Tested: {times_tested} times")
-    print(f"  Referenced: {times_referenced} times ({reference_rate}%)")
+    print(f"  Cited: {times_cited} times ({citation_rate}%)")
     print()
 
 conn.close()
