@@ -121,7 +121,10 @@ $db->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIEO Monitor Dashboard</title>
+    <title>MONITOR // SYSTEM TERMINAL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
@@ -131,35 +134,100 @@ $db->close();
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1a4d2e 0%, #0d2818 100%);
+            font-family: 'IBM Plex Mono', 'Courier New', monospace;
+            background: #0a0a0a;
             min-height: 100vh;
             padding: 20px;
-            color: #333;
+            color: #00d9ff;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* CRT Scanline Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 217, 255, 0.03) 0px,
+                rgba(0, 0, 0, 0.05) 1px,
+                rgba(0, 0, 0, 0.05) 2px,
+                rgba(0, 217, 255, 0.03) 3px
+            );
+            pointer-events: none;
+            z-index: 9999;
+            animation: scanlines 8s linear infinite;
+        }
+        
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+        
+        /* CRT Flicker */
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            41.99% { opacity: 1; }
+            42% { opacity: 0.8; }
+            43% { opacity: 1; }
+            45.99% { opacity: 1; }
+            46% { opacity: 0.9; }
+            46.5% { opacity: 1; }
+        }
+        
+        body {
+            animation: flicker 5s infinite;
         }
         
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
         
         .header {
-            text-align: center;
-            color: white;
+            text-align: left;
+            color: #00d9ff;
             margin-bottom: 30px;
-            padding: 20px;
+            padding: 25px;
+            border: 2px solid #00d9ff;
+            background: rgba(0, 217, 255, 0.02);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3), inset 0 0 20px rgba(0, 217, 255, 0.05);
+            position: relative;
+        }
+        
+        .header::before {
+            content: '> SYSTEM ACTIVE_';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #0a0a0a;
+            padding: 0 10px;
+            font-size: 0.85em;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #00d9ff;
         }
         
         .header h1 {
-            font-size: 2.5em;
+            font-size: 2.2em;
             font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.8), 0 0 20px rgba(0, 217, 255, 0.4);
+            letter-spacing: 3px;
+            text-transform: uppercase;
         }
         
         .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+            font-size: 0.95em;
+            opacity: 0.8;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
         }
         
         .stats-grid {
@@ -170,37 +238,60 @@ $db->close();
         }
         
         .stat-card {
-            background: white;
-            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00d9ff;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3), inset 0 0 15px rgba(0, 217, 255, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .stat-card:hover::before {
+            left: 100%;
         }
         
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            box-shadow: 0 0 25px rgba(0, 217, 255, 0.5), inset 0 0 25px rgba(0, 217, 255, 0.1);
+            border-color: #0af;
         }
         
         .stat-card h3 {
-            font-size: 0.9em;
+            font-size: 0.75em;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #1a4d2e;
-            margin-bottom: 10px;
+            letter-spacing: 2px;
+            color: #0af;
+            margin-bottom: 15px;
             font-weight: 600;
+            text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
         }
         
         .stat-card .value {
-            font-size: 2.5em;
+            font-size: 2.8em;
             font-weight: 700;
-            color: #333;
-            margin-bottom: 5px;
+            color: #00d9ff;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.8);
+            font-family: 'IBM Plex Mono', monospace;
         }
         
         .stat-card .label {
-            font-size: 0.9em;
-            color: #666;
+            font-size: 0.8em;
+            color: #0af;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .chart-grid {
@@ -211,17 +302,34 @@ $db->close();
         }
         
         .chart-card {
-            background: white;
-            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00d9ff;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3), inset 0 0 15px rgba(0, 217, 255, 0.05);
+            position: relative;
+        }
+        
+        .chart-card::before {
+            content: '[ DATA VISUALIZATION ]';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #0a0a0a;
+            padding: 0 10px;
+            font-size: 0.7em;
+            letter-spacing: 2px;
+            color: #0af;
+            text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
         }
         
         .chart-card h2 {
-            font-size: 1.3em;
+            font-size: 1.1em;
             margin-bottom: 20px;
-            color: #333;
+            color: #00d9ff;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(0, 217, 255, 0.6);
         }
         
         .chart-container {
@@ -234,11 +342,25 @@ $db->close();
         }
         
         .table-container {
-            background: white;
-            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00d9ff;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3), inset 0 0 15px rgba(0, 217, 255, 0.05);
             overflow-x: auto;
+            position: relative;
+        }
+        
+        .table-container::before {
+            content: '[ QUERY LOG ]';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #0a0a0a;
+            padding: 0 10px;
+            font-size: 0.7em;
+            letter-spacing: 2px;
+            color: #0af;
+            text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
         }
         
         table {
@@ -247,55 +369,65 @@ $db->close();
         }
         
         th {
-            background: #1a4d2e;
-            color: white;
+            background: rgba(0, 217, 255, 0.1);
+            color: #00d9ff;
             padding: 12px;
             text-align: left;
             font-weight: 600;
-            font-size: 0.9em;
+            font-size: 0.8em;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1.5px;
+            border-bottom: 2px solid #00d9ff;
+            text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
         }
         
         td {
             padding: 12px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(0, 217, 255, 0.2);
+            color: #0af;
         }
         
         tr:hover {
-            background: #f1f8f4;
+            background: rgba(0, 217, 255, 0.05);
         }
         
         .badge {
             display: inline-block;
             padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
+            font-size: 0.75em;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .badge-success {
-            background: #d4edda;
-            color: #155724;
+            background: rgba(0, 217, 255, 0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
         }
         
         .badge-danger {
-            background: #f8d7da;
-            color: #721c24;
+            background: rgba(255, 0, 100, 0.1);
+            color: #ff0064;
+            border: 1px solid #ff0064;
+            text-shadow: 0 0 5px rgba(255, 0, 100, 0.5);
         }
         
         .model-tag {
-            background: #d4edda;
-            color: #1a4d2e;
+            background: rgba(0, 217, 255, 0.15);
+            color: #00d9ff;
             padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.85em;
+            font-size: 0.75em;
             font-weight: 500;
+            border: 1px solid #00d9ff;
+            text-shadow: 0 0 5px rgba(0, 217, 255, 0.3);
         }
         
         .timestamp {
-            color: #666;
-            font-size: 0.9em;
+            color: #0af;
+            font-size: 0.85em;
+            opacity: 0.8;
         }
         
         .query-breakdown {
@@ -303,37 +435,41 @@ $db->close();
         }
         
         .query-item {
-            background: white;
-            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00d9ff;
             margin-bottom: 15px;
             overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
             transition: all 0.3s ease;
         }
         
         .query-item:hover {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            box-shadow: 0 0 25px rgba(0, 217, 255, 0.5);
         }
         
         .query-header {
             padding: 20px 25px;
-            background: linear-gradient(135deg, #1a4d2e 0%, #0d2818 100%);
-            color: white;
+            background: rgba(0, 217, 255, 0.05);
+            color: #00d9ff;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 15px;
+            border-bottom: 1px solid rgba(0, 217, 255, 0.2);
+            transition: all 0.3s ease;
         }
         
         .query-header:hover {
-            opacity: 0.95;
+            background: rgba(0, 217, 255, 0.1);
+            text-shadow: 0 0 8px rgba(0, 217, 255, 0.8);
         }
         
         .query-title {
-            font-size: 1.05em;
+            font-size: 0.95em;
             font-weight: 600;
             flex: 1;
+            letter-spacing: 0.5px;
         }
         
         .query-stats {
@@ -346,24 +482,28 @@ $db->close();
         .query-stat {
             text-align: center;
             padding: 5px 15px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
-            font-size: 0.9em;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            font-size: 0.85em;
         }
         
         .query-stat-value {
             font-weight: 700;
             font-size: 1.3em;
+            text-shadow: 0 0 8px rgba(0, 217, 255, 0.6);
         }
         
         .query-stat-label {
-            font-size: 0.85em;
-            opacity: 0.9;
+            font-size: 0.75em;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .toggle-icon {
             font-size: 1.5em;
             transition: transform 0.3s ease;
+            text-shadow: 0 0 8px rgba(0, 217, 255, 0.6);
         }
         
         .query-item.active .toggle-icon {
@@ -382,6 +522,7 @@ $db->close();
         
         .query-models {
             padding: 25px;
+            background: rgba(0, 0, 0, 0.4);
         }
         
         .model-row {
@@ -390,18 +531,22 @@ $db->close();
             gap: 15px;
             padding: 15px;
             margin-bottom: 10px;
-            background: #f1f8f4;
-            border-radius: 10px;
+            background: rgba(0, 217, 255, 0.05);
+            border: 1px solid rgba(0, 217, 255, 0.2);
             align-items: center;
+            transition: all 0.3s ease;
         }
         
         .model-row:hover {
-            background: #e8f5e9;
+            background: rgba(0, 217, 255, 0.1);
+            border-color: #00d9ff;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
         }
         
         .model-name {
             font-weight: 600;
-            color: #1a4d2e;
+            color: #00d9ff;
+            text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
         }
         
         .model-metric {
@@ -411,34 +556,37 @@ $db->close();
         .model-metric-value {
             font-size: 1.3em;
             font-weight: 700;
-            color: #333;
+            color: #00d9ff;
+            text-shadow: 0 0 8px rgba(0, 217, 255, 0.6);
         }
         
         .model-metric-label {
-            font-size: 0.8em;
-            color: #666;
+            font-size: 0.7em;
+            color: #0af;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            opacity: 0.8;
         }
         
         .progress-bar {
             width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 10px;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 217, 255, 0.3);
             overflow: hidden;
             margin-top: 8px;
         }
         
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #2ed573 0%, #26de81 100%);
+            background: linear-gradient(90deg, #00d9ff 0%, #0af 100%);
             transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.8);
         }
         
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 1.8em;
+                font-size: 1.6em;
             }
             
             .chart-grid {
@@ -455,7 +603,7 @@ $db->close();
             
             th, td {
                 padding: 8px;
-                font-size: 0.9em;
+                font-size: 0.85em;
             }
             
             .model-row {
@@ -464,7 +612,7 @@ $db->close();
             }
             
             .query-stat {
-                font-size: 0.8em;
+                font-size: 0.75em;
                 padding: 4px 10px;
             }
             
@@ -485,59 +633,63 @@ $db->close();
             .chart-container {
                 height: 250px;
             }
+            
+            .header::before {
+                font-size: 0.75em;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>AIEO Monitor Dashboard</h1>
-            <p>paintballevents.net Citation Analysis</p>
+            <h1>/// MONITOR TERMINAL v2.1</h1>
+            <p>LLM Citation Tracking System :: paintballevents.net</p>
         </div>
         
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>Total Queries</h3>
+                <h3>TOTAL_QUERIES</h3>
                 <div class="value"><?php echo $totalQueries; ?></div>
-                <div class="label">API calls made</div>
+                <div class="label">:: API CALLS EXECUTED</div>
             </div>
             
             <div class="stat-card">
-                <h3>Citations Found</h3>
+                <h3>CITATIONS_DETECTED</h3>
                 <div class="value"><?php echo $citedQueries; ?></div>
-                <div class="label">Times paintballevents.net cited</div>
+                <div class="label">:: PAINTBALLEVENTS.NET REFS</div>
             </div>
             
             <div class="stat-card">
-                <h3>Citation Rate</h3>
+                <h3>CITATION_RATE</h3>
                 <div class="value"><?php echo $citationRate; ?>%</div>
-                <div class="label">Overall performance</div>
+                <div class="label">:: SYSTEM PERFORMANCE</div>
             </div>
             
             <div class="stat-card">
-                <h3>Models Tested</h3>
+                <h3>MODELS_ACTIVE</h3>
                 <div class="value"><?php echo count($modelData); ?></div>
-                <div class="label">AI models compared</div>
+                <div class="label">:: AI MODELS TRACKED</div>
             </div>
         </div>
         
         <div class="chart-grid">
             <div class="chart-card">
-                <h2>Model Performance</h2>
+                <h2>> MODEL_PERFORMANCE_ANALYSIS</h2>
                 <div class="chart-container">
                     <canvas id="modelChart"></canvas>
                 </div>
             </div>
             
             <div class="chart-card">
-                <h2>Citation Rate by Model</h2>
+                <h2>> CITATION_RATE_METRICS</h2>
                 <div class="chart-container">
                     <canvas id="citationRateChart"></canvas>
                 </div>
             </div>
             
             <div class="chart-card full-width">
-                <h2>Top Query Patterns</h2>
+                <h2>> QUERY_PATTERN_ANALYSIS</h2>
                 <div class="chart-container" style="height: 400px;">
                     <canvas id="queryChart"></canvas>
                 </div>
@@ -545,9 +697,10 @@ $db->close();
         </div>
         
         <div class="query-breakdown">
-            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px;">
-                <h2 style="margin-bottom: 10px;">Detailed Query Breakdown</h2>
-                <p style="color: #666; margin-bottom: 20px;">Click on any query to expand and see model-specific performance</p>
+            <div style="background: rgba(0, 0, 0, 0.8); border: 2px solid #00d9ff; padding: 25px; box-shadow: 0 0 15px rgba(0, 217, 255, 0.3); margin-bottom: 20px; position: relative;">
+                <div style="content: ''; position: absolute; top: -12px; left: 20px; background: #0a0a0a; padding: 0 10px; font-size: 0.7em; letter-spacing: 2px; color: #0af; text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);">[ DETAILED ANALYSIS ]</div>
+                <h2 style="margin-bottom: 10px; color: #00d9ff; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 8px rgba(0, 217, 255, 0.6); margin-top: 10px;">> QUERY_BREAKDOWN_MATRIX</h2>
+                <p style="color: #0af; margin-bottom: 20px; font-size: 0.9em; letter-spacing: 0.5px;">// Expand query records for model-specific performance data</p>
             </div>
             
             <?php foreach ($detailedData as $query => $data): 
@@ -611,16 +764,16 @@ $db->close();
         </div>
         
         <div class="table-container">
-            <h2 style="margin-bottom: 20px;">Recent Queries</h2>
+            <h2 style="margin-bottom: 20px; margin-top: 10px; color: #00d9ff; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 8px rgba(0, 217, 255, 0.6);">> RECENT_ACTIVITY_LOG</h2>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Timestamp</th>
-                        <th>Query</th>
-                        <th>Model</th>
-                        <th>CITED?</th>
-                        <th>URLs</th>
+                        <th>TIMESTAMP</th>
+                        <th>QUERY_STRING</th>
+                        <th>MODEL_ID</th>
+                        <th>STATUS</th>
+                        <th>URLS</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -666,18 +819,18 @@ $db->close();
                     {
                         label: 'Tests Run',
                         data: modelTests,
-                        backgroundColor: 'rgba(26, 77, 46, 0.8)',
-                        borderColor: 'rgba(26, 77, 46, 1)',
+                        backgroundColor: 'rgba(0, 217, 255, 0.3)',
+                        borderColor: 'rgba(0, 217, 255, 1)',
                         borderWidth: 2,
-                        borderRadius: 8
+                        borderRadius: 5
                     },
                     {
                         label: 'Citations Found',
                         data: modelCitations,
-                        backgroundColor: 'rgba(76, 175, 80, 0.8)',
-                        borderColor: 'rgba(76, 175, 80, 1)',
+                        backgroundColor: 'rgba(0, 255, 136, 0.3)',
+                        borderColor: 'rgba(0, 255, 136, 1)',
                         borderWidth: 2,
-                        borderRadius: 8
+                        borderRadius: 5
                     }
                 ]
             },
@@ -689,19 +842,28 @@ $db->close();
                         position: 'bottom',
                         labels: {
                             padding: 15,
-                            font: { size: 12, weight: '600' }
+                            font: { size: 11, weight: '600', family: "'IBM Plex Mono', monospace" },
+                            color: '#00d9ff'
                         }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { font: { size: 11 } },
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        ticks: { 
+                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
+                            color: '#0af'
+                        },
+                        grid: { color: 'rgba(0, 217, 255, 0.1)' },
+                        border: { color: '#00d9ff' }
                     },
                     x: {
-                        ticks: { font: { size: 11 } },
-                        grid: { display: false }
+                        ticks: { 
+                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
+                            color: '#0af'
+                        },
+                        grid: { display: false },
+                        border: { color: '#00d9ff' }
                     }
                 }
             }
@@ -717,13 +879,15 @@ $db->close();
                 datasets: [{
                     data: citationRates,
                     backgroundColor: [
-                        'rgba(26, 77, 46, 0.8)',
-                        'rgba(13, 40, 24, 0.8)',
-                        'rgba(76, 175, 80, 0.8)',
-                        'rgba(129, 199, 132, 0.8)'
+                        'rgba(0, 217, 255, 0.6)',
+                        'rgba(0, 170, 255, 0.6)',
+                        'rgba(0, 255, 136, 0.6)',
+                        'rgba(0, 200, 200, 0.6)'
                     ],
-                    borderWidth: 3,
-                    borderColor: '#fff'
+                    borderWidth: 2,
+                    borderColor: '#0a0a0a',
+                    hoverBorderColor: '#00d9ff',
+                    hoverBorderWidth: 3
                 }]
             },
             options: {
@@ -734,10 +898,16 @@ $db->close();
                         position: 'bottom',
                         labels: {
                             padding: 15,
-                            font: { size: 12, weight: '600' }
+                            font: { size: 11, weight: '600', family: "'IBM Plex Mono', monospace" },
+                            color: '#00d9ff'
                         }
                     },
                     tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        borderColor: '#00d9ff',
+                        borderWidth: 1,
+                        titleFont: { family: "'IBM Plex Mono', monospace" },
+                        bodyFont: { family: "'IBM Plex Mono', monospace" },
                         callbacks: {
                             label: function(context) {
                                 return context.label + ': ' + context.parsed + '%';
@@ -765,18 +935,18 @@ $db->close();
                     {
                         label: 'Tests Run',
                         data: queryTests,
-                        backgroundColor: 'rgba(26, 77, 46, 0.6)',
-                        borderColor: 'rgba(26, 77, 46, 1)',
+                        backgroundColor: 'rgba(0, 217, 255, 0.3)',
+                        borderColor: 'rgba(0, 217, 255, 1)',
                         borderWidth: 2,
-                        borderRadius: 8
+                        borderRadius: 4
                     },
                     {
                         label: 'Citations Found',
                         data: queryCitations,
-                        backgroundColor: 'rgba(76, 175, 80, 0.6)',
-                        borderColor: 'rgba(76, 175, 80, 1)',
+                        backgroundColor: 'rgba(0, 255, 136, 0.3)',
+                        borderColor: 'rgba(0, 255, 136, 1)',
                         borderWidth: 2,
-                        borderRadius: 8
+                        borderRadius: 4
                     }
                 ]
             },
@@ -789,19 +959,35 @@ $db->close();
                         position: 'bottom',
                         labels: {
                             padding: 15,
-                            font: { size: 12, weight: '600' }
+                            font: { size: 11, weight: '600', family: "'IBM Plex Mono', monospace" },
+                            color: '#00d9ff'
                         }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        borderColor: '#00d9ff',
+                        borderWidth: 1,
+                        titleFont: { family: "'IBM Plex Mono', monospace" },
+                        bodyFont: { family: "'IBM Plex Mono', monospace" }
                     }
                 },
                 scales: {
                     x: {
                         beginAtZero: true,
-                        ticks: { font: { size: 11 } },
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        ticks: { 
+                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
+                            color: '#0af'
+                        },
+                        grid: { color: 'rgba(0, 217, 255, 0.1)' },
+                        border: { color: '#00d9ff' }
                     },
                     y: {
-                        ticks: { font: { size: 10 } },
-                        grid: { display: false }
+                        ticks: { 
+                            font: { size: 9, family: "'IBM Plex Mono', monospace" },
+                            color: '#0af'
+                        },
+                        grid: { display: false },
+                        border: { color: '#00d9ff' }
                     }
                 }
             }
