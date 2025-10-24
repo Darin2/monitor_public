@@ -9,8 +9,8 @@
 // Database configuration
 // For Bluehost, use localhost and the credentials from cPanel
 $host = getenv('MYSQL_HOST') ?: 'localhost';
-$database = getenv('MYSQL_DATABASE') ?: 'your_database_name';
-$username = getenv('MYSQL_USER') ?: 'your_username';
+$database = getenv('MYSQL_DATABASE') ?: 'darintec_monitor';
+$username = getenv('MYSQL_USER') ?: 'darintec_monitor';
 $password = getenv('MYSQL_PASSWORD') ?: 'your_password';
 
 // Connect to MySQL database

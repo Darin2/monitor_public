@@ -124,7 +124,7 @@ Terminal-style UI with:
 1. **Create MySQL Database**
    - Log into Bluehost cPanel
    - Go to "MySQL Databases"
-   - Create database: `darintech_monitor`
+   - Create database: `darintec_monitor`
    - Create user with strong password
    - Add user to database with ALL PRIVILEGES
 
@@ -153,8 +153,8 @@ ANTHROPIC_API_KEY=sk-ant-...
 **MySQL Connection:**
 ```
 MYSQL_HOST=yourdomain.com
-MYSQL_DATABASE=darintech_monitor
-MYSQL_USER=darintech_user
+MYSQL_DATABASE=darintec_monitor
+MYSQL_USER=darintec_monitor
 MYSQL_PASSWORD=your_password
 ```
 

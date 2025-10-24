@@ -18,7 +18,7 @@ This monitoring system tracks whether AI models cite paintballevents.net when an
 1. **Create MySQL Database via cPanel**
    - Log into Bluehost cPanel
    - Go to "MySQL Databases"
-   - Create a new database: `darintech_monitor` (or similar)
+   - Create a new database: `darintec_monitor` (or similar)
    - Create a new MySQL user with a strong password
    - Add user to database with ALL PRIVILEGES
 
@@ -37,8 +37,8 @@ This monitoring system tracks whether AI models cite paintballevents.net when an
 4. **Note Your Database Credentials**
    ```
    Host: yourdomain.com (or IP address)
-   Database: darintech_monitor
-   Username: darintech_user
+   Database: darintec_monitor
+   Username: darintec_monitor
    Password: your_secure_password
    ```
 
@@ -63,8 +63,8 @@ This monitoring system tracks whether AI models cite paintballevents.net when an
    **MySQL Connection:**
    ```
    MYSQL_HOST=yourdomain.com
-   MYSQL_DATABASE=darintech_monitor
-   MYSQL_USER=darintech_user
+   MYSQL_DATABASE=darintec_monitor
+   MYSQL_USER=darintec_monitor
    MYSQL_PASSWORD=your_secure_password
    ```
 
@@ -100,8 +100,8 @@ This monitoring system tracks whether AI models cite paintballevents.net when an
    - Or set environment variables in `.htaccess`:
    ```apache
    SetEnv MYSQL_HOST "localhost"
-   SetEnv MYSQL_DATABASE "darintech_monitor"
-   SetEnv MYSQL_USER "darintech_user"
+   SetEnv MYSQL_DATABASE "darintec_monitor"
+   SetEnv MYSQL_USER "darintec_monitor"
    SetEnv MYSQL_PASSWORD "your_password"
    ```
 
