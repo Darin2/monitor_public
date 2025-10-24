@@ -1,9 +1,9 @@
 name: AI Citation Monitor
 
 on:
-  # Run every Monday at 9 AM UTC (4 AM EST / 1 AM PST)
+  # Run daily at 9 AM UTC (4 AM EST / 1 AM PST)
   schedule:
-    - cron: '0 9 * * 1'
+    - cron: '0 9 * * *'
   
   # Allow manual trigger from GitHub Actions UI
   workflow_dispatch:
