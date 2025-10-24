@@ -103,41 +103,58 @@ def store_response(conn, query, response_text, paintballevents_ref, search_query
 # Initialize database
 conn = init_database()
 
-# Test queries - try different variations to see which ones surface paintballevents.net
+# Test queries - all queries from the database
 TEST_QUERIES = [
-    "Find paintball events in Texas in 2025 and list the websites you searched"
+    "Find paintball events in Texas in 2025 and list the websites you searched",
+    "Find paintball events in Texas in 2025",
+    "Find paintball events in Texas in 2025 and list the websites you referenced",
+    "What paintball tournaments are happening in Texas in 2025?",
+    "Find upcoming paintball scenario games and tournaments in Texas for 2025",
+    "Where can I find paintball events in Texas?"
 ]
-
-# Choose which query to test (change the index to test different queries)
-query = TEST_QUERIES[0]  # Currently testing query #0
-
-print(f"Testing Query #{TEST_QUERIES.index(query)}: {query}\n")
 
 # Define model to use
 model = "gpt-4o"
 
-# Make API call with web search enabled
-response = client.responses.create(
-    model=model,
-    tools=[
-        {"type": "web_search"}
-    ],
-    input=query
-)
+print(f"Running {len(TEST_QUERIES)} queries with model: {model}\n")
+print("=" * 80)
 
-# Print the response
-response_text = response.output_text
-print("Response:")
-print(response_text)
+# Run all queries
+for idx, query in enumerate(TEST_QUERIES, 1):
+    print(f"\n[{idx}/{len(TEST_QUERIES)}] Testing Query: {query}\n")
+    
+    try:
+        # Make API call with web search enabled
+        response = client.responses.create(
+            model=model,
+            tools=[
+                {"type": "web_search"}
+            ],
+            input=query
+        )
+        
+        # Print the response
+        response_text = response.output_text
+        print("Response:")
+        print(response_text)
+        
+        # Extract metadata (search query and cited URLs)
+        search_query, cited_urls = extract_metadata(response)
+        
+        # Check if paintballevents.net was referenced in the cited URLs
+        paintballevents_ref = check_paintballevents_reference(cited_urls)
+        
+        # Store in database
+        store_response(conn, query, response_text, paintballevents_ref, search_query, cited_urls, model)
+        
+        print("\n" + "=" * 80)
+        
+    except Exception as e:
+        print(f"✗ Error processing query: {e}")
+        print("=" * 80)
+        continue
 
-# Extract metadata (search query and cited URLs)
-search_query, cited_urls = extract_metadata(response)
-
-# Check if paintballevents.net was referenced in the cited URLs
-paintballevents_ref = check_paintballevents_reference(cited_urls)
-
-# Store in database
-store_response(conn, query, response_text, paintballevents_ref, search_query, cited_urls, model)
+print(f"\n✓ Completed all {len(TEST_QUERIES)} queries")
 
 # Close database connection
 conn.close()
