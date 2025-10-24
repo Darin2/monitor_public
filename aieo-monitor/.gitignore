@@ -39,6 +39,9 @@ env/
 query_responses.db
 *.db
 
+# Legacy files (already moved to legacy/ folder)
+# Keeping .db files ignored to prevent accidental commits
+
 # Logs
 *.log
 
