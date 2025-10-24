@@ -86,15 +86,13 @@ class MonitorOrchestrator:
         #     except Exception as e:
         #         print(f"✗ Grok model failed to initialize: {e}")
         
-        # Perplexity (commented out until implemented)
-        # if os.getenv("PERPLEXITY_API_KEY"):
-        #     try:
-        #         models.append(PerplexityModel(os.getenv("PERPLEXITY_API_KEY")))
-        #         print("✓ Perplexity model initialized")
-        #     except NotImplementedError:
-        #         print("⚠️  Perplexity model not yet implemented")
-        #     except Exception as e:
-        #         print(f"✗ Perplexity model failed to initialize: {e}")
+        # Perplexity
+        if os.getenv("PERPLEXITY_API_KEY"):
+            try:
+                models.append(PerplexityModel(os.getenv("PERPLEXITY_API_KEY")))
+                print("✓ Perplexity model initialized")
+            except Exception as e:
+                print(f"✗ Perplexity model failed to initialize: {e}")
         
         # Llama (commented out until implemented)
         # if os.getenv("LLAMA_API_KEY"):
