@@ -29,17 +29,26 @@ while ($row = $modelResults->fetchArray(SQLITE3_ASSOC)) {
     $modelData[] = $row;
 }
 
-// Get citations over time per model
+// Get all unique queries
+$queriesQuery = "SELECT DISTINCT query FROM responses WHERE query IS NOT NULL ORDER BY query";
+$queriesResults = $db->query($queriesQuery);
+$queries = [];
+while ($row = $queriesResults->fetchArray(SQLITE3_ASSOC)) {
+    $queries[] = $row['query'];
+}
+
+// Get citations over time per model (with query info)
 $timeSeriesQuery = "
     SELECT 
         DATE(timestamp) as date,
         model,
+        query,
         SUM(paintballevents_referenced) as citations,
         COUNT(*) as total_queries
     FROM responses
     WHERE model IS NOT NULL
-    GROUP BY DATE(timestamp), model
-    ORDER BY date ASC, model
+    GROUP BY DATE(timestamp), model, query
+    ORDER BY date ASC, model, query
 ";
 $timeSeriesResults = $db->query($timeSeriesQuery);
 $timeSeriesData = [];
@@ -387,6 +396,68 @@ $db->close();
             opacity: 0.8;
         }
         
+        .query-selector {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00d9ff;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+            position: relative;
+        }
+        
+        .query-selector::before {
+            content: '[ QUERY FILTER ]';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #0a0a0a;
+            padding: 0 10px;
+            font-size: 0.7em;
+            letter-spacing: 2px;
+            color: #0af;
+            text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
+        }
+        
+        .query-selector label {
+            display: block;
+            color: #00d9ff;
+            font-size: 0.85em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
+        }
+        
+        .query-selector select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00d9ff;
+            color: #00d9ff;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 0 10px rgba(0, 217, 255, 0.1);
+        }
+        
+        .query-selector select:hover {
+            background: rgba(0, 217, 255, 0.05);
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.3), inset 0 0 10px rgba(0, 217, 255, 0.1);
+        }
+        
+        .query-selector select:focus {
+            outline: none;
+            border-color: #0af;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+        }
+        
+        .query-selector select option {
+            background: #0a0a0a;
+            color: #00d9ff;
+            padding: 10px;
+        }
+        
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.6em;
@@ -456,6 +527,18 @@ $db->close();
             </div>
         </div>
         
+        <div class="query-selector">
+            <label for="queryFilter">> SELECT QUERY TO MONITOR</label>
+            <select id="queryFilter" onchange="updateTimeSeriesChart()">
+                <option value="all">ALL QUERIES</option>
+                <?php foreach ($queries as $query): ?>
+                    <option value="<?php echo htmlspecialchars($query); ?>">
+                        <?php echo htmlspecialchars($query); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        
         <div class="chart-grid">
             <div class="chart-card full-width">
                 <h2>> CITATIONS_OVER_TIME_PER_LLM</h2>
@@ -521,10 +604,6 @@ $db->close();
         const modelCitations = modelData.map(m => m.times_cited);
         const citationRates = modelData.map(m => m.citation_rate);
         
-        // Process time series data per model
-        const uniqueDates = [...new Set(timeSeriesData.map(d => d.date))].sort();
-        const uniqueModels = [...new Set(timeSeriesData.map(d => d.model))];
-        
         const colors = [
             { bg: 'rgba(0, 217, 255, 0.3)', border: 'rgba(0, 217, 255, 1)' },
             { bg: 'rgba(0, 255, 136, 0.3)', border: 'rgba(0, 255, 136, 1)' },
@@ -532,84 +611,111 @@ $db->close();
             { bg: 'rgba(170, 0, 255, 0.3)', border: 'rgba(170, 0, 255, 1)' }
         ];
         
-        const timeSeriesDatasets = uniqueModels.map((model, idx) => {
-            const modelName = model.replace('claude-3-7-sonnet-20250219', 'Claude 3.7').replace('gpt-4o', 'GPT-4o');
-            const data = uniqueDates.map(date => {
-                const entry = timeSeriesData.find(d => d.date === date && d.model === model);
-                return entry ? entry.citations : 0;
+        let timeSeriesChart = null;
+        
+        function updateTimeSeriesChart() {
+            const selectedQuery = document.getElementById('queryFilter').value;
+            
+            // Filter data by query
+            let filteredData = timeSeriesData;
+            if (selectedQuery !== 'all') {
+                filteredData = timeSeriesData.filter(d => d.query === selectedQuery);
+            }
+            
+            // Process time series data per model
+            const uniqueDates = [...new Set(filteredData.map(d => d.date))].sort();
+            const uniqueModels = [...new Set(filteredData.map(d => d.model))];
+            
+            const timeSeriesDatasets = uniqueModels.map((model, idx) => {
+                const modelName = model.replace('claude-3-7-sonnet-20250219', 'Claude 3.7').replace('gpt-4o', 'GPT-4o');
+                const data = uniqueDates.map(date => {
+                    const entry = filteredData.find(d => d.date === date && d.model === model);
+                    return entry ? entry.citations : 0;
+                });
+                
+                return {
+                    label: modelName,
+                    data: data,
+                    backgroundColor: colors[idx % colors.length].bg,
+                    borderColor: colors[idx % colors.length].border,
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                };
             });
             
-            return {
-                label: modelName,
-                data: data,
-                backgroundColor: colors[idx % colors.length].bg,
-                borderColor: colors[idx % colors.length].border,
-                borderWidth: 2,
-                fill: false,
-                tension: 0.3,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            };
-        });
-        
-        // Time Series Chart
-        new Chart(document.getElementById('timeSeriesChart'), {
-            type: 'line',
-            data: {
+            const chartData = {
                 labels: uniqueDates.map(d => {
                     const date = new Date(d + 'T00:00:00');
                     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 }),
                 datasets: timeSeriesDatasets
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: { size: 11, weight: '600', family: "'IBM Plex Mono', monospace" },
-                            color: '#00d9ff'
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                        borderColor: '#00d9ff',
-                        borderWidth: 1,
-                        titleFont: { family: "'IBM Plex Mono', monospace" },
-                        bodyFont: { family: "'IBM Plex Mono', monospace" }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { 
-                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
-                            color: '#0af',
-                            stepSize: 1
+            };
+            
+            if (timeSeriesChart) {
+                // Update existing chart
+                timeSeriesChart.data = chartData;
+                timeSeriesChart.update();
+            } else {
+                // Create new chart
+                timeSeriesChart = new Chart(document.getElementById('timeSeriesChart'), {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    font: { size: 11, weight: '600', family: "'IBM Plex Mono', monospace" },
+                                    color: '#00d9ff'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                borderColor: '#00d9ff',
+                                borderWidth: 1,
+                                titleFont: { family: "'IBM Plex Mono', monospace" },
+                                bodyFont: { family: "'IBM Plex Mono', monospace" }
+                            }
                         },
-                        grid: { color: 'rgba(0, 217, 255, 0.1)' },
-                        border: { color: '#00d9ff' },
-                        title: {
-                            display: true,
-                            text: 'Citations',
-                            color: '#00d9ff',
-                            font: { size: 11, family: "'IBM Plex Mono', monospace" }
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { 
+                                    font: { size: 10, family: "'IBM Plex Mono', monospace" },
+                                    color: '#0af',
+                                    stepSize: 1
+                                },
+                                grid: { color: 'rgba(0, 217, 255, 0.1)' },
+                                border: { color: '#00d9ff' },
+                                title: {
+                                    display: true,
+                                    text: 'Citations',
+                                    color: '#00d9ff',
+                                    font: { size: 11, family: "'IBM Plex Mono', monospace" }
+                                }
+                            },
+                            x: {
+                                ticks: { 
+                                    font: { size: 10, family: "'IBM Plex Mono', monospace" },
+                                    color: '#0af'
+                                },
+                                grid: { display: false },
+                                border: { color: '#00d9ff' }
+                            }
                         }
-                    },
-                    x: {
-                        ticks: { 
-                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
-                            color: '#0af'
-                        },
-                        grid: { display: false },
-                        border: { color: '#00d9ff' }
                     }
-                }
+                });
             }
-        });
+        }
+        
+        // Initialize time series chart
+        updateTimeSeriesChart();
         
         // Total Citations by Model Chart
         new Chart(document.getElementById('modelChart'), {
