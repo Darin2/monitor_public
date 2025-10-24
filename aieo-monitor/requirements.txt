@@ -1,3 +1,20 @@
-openai>=1.0.0
+# AI Citation Monitor Dependencies
+
+# Core dependencies
 python-dotenv>=1.0.0
 
+# Database
+PyMySQL>=1.1.0
+
+# AI Model APIs
+openai>=1.12.0          # OpenAI GPT-4o
+anthropic>=0.18.0       # Anthropic Claude
+
+# Future model dependencies (uncomment when implementing):
+# deepseek-api>=1.0.0   # DeepSeek
+# xai>=1.0.0            # Grok (xAI)
+# perplexity>=1.0.0     # Perplexity
+# together>=1.0.0       # Together AI (for Llama)
+
+# Utilities
+requests>=2.31.0        # HTTP requests (for future webhooks)

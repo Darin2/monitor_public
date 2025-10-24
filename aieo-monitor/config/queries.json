@@ -1,0 +1,68 @@
+{
+  "queries": [
+    {
+      "id": "q1",
+      "text": "Find paintball scenario games in Texas for 2025",
+      "category": "scenario_texas",
+      "priority": 1,
+      "active": true
+    },
+    {
+      "id": "q2",
+      "text": "Where can I find scenario paintball events near me?",
+      "category": "scenario_general",
+      "priority": 1,
+      "active": true
+    },
+    {
+      "id": "q3",
+      "text": "What are the upcoming paintball scenario games and big games in 2025?",
+      "category": "scenario_big_games",
+      "priority": 1,
+      "active": true
+    },
+    {
+      "id": "q4",
+      "text": "Find magfed paintball events in Texas",
+      "category": "magfed_texas",
+      "priority": 1,
+      "active": true
+    },
+    {
+      "id": "q5",
+      "text": "Where can I play scenario paintball in Texas?",
+      "category": "scenario_texas",
+      "priority": 2,
+      "active": true
+    },
+    {
+      "id": "q6",
+      "text": "What paintball big games are happening in 2025?",
+      "category": "big_games",
+      "priority": 2,
+      "active": true
+    },
+    {
+      "id": "q7",
+      "text": "Find upcoming scenario and magfed paintball events",
+      "category": "scenario_magfed",
+      "priority": 2,
+      "active": true
+    },
+    {
+      "id": "q8",
+      "text": "Where are paintball scenario games in Texas in 2025?",
+      "category": "scenario_texas",
+      "priority": 2,
+      "active": true
+    },
+    {
+      "id": "q9",
+      "text": "Find paintball events in Texas in 2025",
+      "category": "general_texas",
+      "priority": 3,
+      "active": true
+    }
+  ]
+}
+

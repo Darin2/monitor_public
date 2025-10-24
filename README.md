@@ -8,14 +8,25 @@ Monitor the visibility of **paintballevents.net** across major AI search platfor
 
 This helps understand both when the site is being found by AI search AND when it's being presented to end users.
 
+## Architecture
+
+**GitHub Actions** (Weekly Cron) → **MySQL on Bluehost** → **PHP Dashboard**
+
+- ✅ No Python hosting needed - runs for free on GitHub
+- ✅ Works perfectly with Bluehost shared hosting
+- ✅ Scalable to multiple AI models
+- ✅ Clean separation of concerns
+
 ## Target Platforms
 
-The goal is to track citations and recommendations across all major AI platforms with search capabilities:
+Tracking citations and recommendations across all major AI platforms:
 
-1. **ChatGPT** (OpenAI) - Web search integration
-2. **Claude** (Anthropic) - Web search capabilities
-3. **Perplexity** - AI search engine with citations
-4. **Grok** (X.AI) - Real-time search integration
+1. **ChatGPT** (OpenAI) - ✅ Implemented
+2. **Claude** (Anthropic) - ✅ Implemented
+3. **DeepSeek** - 🚧 Ready (awaiting API key)
+4. **Grok** (xAI) - 🚧 Ready (awaiting API key)
+5. **Perplexity** - 🚧 Ready (awaiting API key)
+6. **Llama** (Meta) - 🚧 Ready (awaiting API key)
 
 ## What We're Tracking
 
@@ -30,21 +41,22 @@ For each query across each platform:
 
 ## Current Status
 
-### ✅ Implemented
-- **OpenAI API integration** - Working with web search
-- **SQLite database** - Stores all query responses and citations
-- **Citation extraction** - Captures actual URLs searched (not just mentioned)
-- **Test query variations** - Multiple query styles to test
-- **Analysis tooling** - View database and query patterns
+### ✅ Implemented (v2.0)
+- **OpenAI & Claude integration** - Both working with web search
+- **MySQL database** - Hosted on Bluehost with proper schema
+- **GitHub Actions automation** - Runs weekly, no server needed
+- **Citation extraction** - Captures actual URLs searched
+- **PHP Dashboard** - Beautiful terminal-style UI with charts
+- **Modular architecture** - Easy to add new models
+- **Query configuration** - JSON-based query management
+- **Run tracking** - Groups queries and tracks execution
 
 ### 📋 Planned
-- **Perplexity API** - Add Perplexity search monitoring
-- **Claude API** - Add Anthropic Claude search monitoring
-- **Grok API** - Add X.AI Grok monitoring (if API available)
-- **Multi-platform comparison** - Compare citation rates across platforms
-- **Manual entry tool** - For platforms without API access (ChatGPT web)
-- **Automated scheduling** - Run queries periodically
-- **Reporting dashboard** - Visualize trends over time
+- **Additional models** - DeepSeek, Grok, Perplexity, Llama (stubs ready)
+- **Email alerts** - Notify when citation rate changes
+- **Competitor tracking** - Track which competitors are cited
+- **Query A/B testing** - Optimize query phrasing
+- **REST API** - Programmatic access to data
 
 ## Why This Matters
 
@@ -64,53 +76,97 @@ AI search is rapidly becoming how users discover events and information. Underst
 4. "Find upcoming paintball scenario games and tournaments in Texas for 2025"
 5. "Where can I find paintball events in Texas?"
 
-## Usage
+## Quick Start
 
-### Run a single test query:
+### Setup
+See [aieo-monitor/SETUP.md](aieo-monitor/SETUP.md) for detailed setup instructions.
+
+**TL;DR:**
+1. Create MySQL database on Bluehost
+2. Run `aieo-monitor/database/schema.sql`
+3. Add secrets to GitHub repository
+4. Upload `aieo-monitor/dashboard_mysql.php` to Bluehost
+5. Done! Runs automatically every Monday.
+
+### Local Development
+
 ```bash
-python3 test_openai.py
+cd aieo-monitor
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your API keys and database credentials
+
+# Test database connection
+python test_connection.py
+
+# Run monitor locally
+python run_monitor.py
 ```
 
-### Run all test queries:
-```bash
-python3 run_all_queries.py
+## Project Structure
+
 ```
-
-### View results:
-```bash
-python3 view_database.py
-```
-
-## Database Schema
-
-```sql
-CREATE TABLE responses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp TEXT NOT NULL,
-    query TEXT NOT NULL,
-    response TEXT NOT NULL,
-    paintballevents_referenced BOOLEAN NOT NULL,
-    search_query TEXT,
-    cited_urls TEXT  -- JSON array of URLs
-)
+monitor/
+├── aieo-monitor/              # Main monitoring system
+│   ├── config/                # Query configurations
+│   ├── models/                # AI model implementations
+│   ├── database/              # Database schema and operations
+│   ├── run_monitor.py         # Main orchestrator
+│   ├── dashboard_mysql.php    # Web dashboard
+│   ├── SETUP.md              # Detailed setup guide
+│   └── README.md             # Module documentation
+├── aieo-optimization/         # SEO optimization tools
+└── README.md                 # This file
 ```
 
 ## Environment Setup
 
-See `AGENTS.md` for environment configuration details.
+API keys required (add to GitHub Secrets):
+- `OPENAI_API_KEY` - For OpenAI GPT-4o
+- `ANTHROPIC_API_KEY` - For Claude
+- `DEEPSEEK_API_KEY` - For DeepSeek (optional)
+- `GROK_API_KEY` - For Grok (optional)
+- `PERPLEXITY_API_KEY` - For Perplexity (optional)
+- `LLAMA_API_KEY` - For Llama (optional)
 
-API keys required (store in `.env`):
-- `OPENAI_API_KEY` - For OpenAI API access
-- (Future) `ANTHROPIC_API_KEY` - For Claude API
-- (Future) `PERPLEXITY_API_KEY` - For Perplexity API
-- (Future) `XAI_API_KEY` - For Grok API
+MySQL credentials (add to GitHub Secrets):
+- `MYSQL_HOST` - Database host
+- `MYSQL_DATABASE` - Database name
+- `MYSQL_USER` - Database user
+- `MYSQL_PASSWORD` - Database password
 
-## Results So Far
+## Dashboard
 
-**OpenAI API Testing (9 queries):**
-- PaintballEvents.net **cited** in search: **0.0%** (0 out of 9 queries)
-- PaintballEvents.net **recommended** to users: **0.0%** (0 out of 9 queries)
-- Most frequently cited: nxlpaintball.com, paintballcombine.com, mlpb.pbleagues.com, reddit.com
+View live results at: **https://darin.tech/monitor.php** (after setup)
 
-**Note:** OpenAI API results may differ from ChatGPT web/mobile experience, which is why multi-platform monitoring is the goal.
+Features:
+- 📈 Citation rate trends over time
+- 📊 Model performance comparison
+- 📋 Detailed statistics per model
+- 🔍 Recent citation events with URLs
+- 🎯 Run status and error tracking
+
+## Results
+
+Check the dashboard for the latest results. Tracking:
+- Overall citation rate across all models
+- Per-model citation rates
+- Best performing queries
+- Competitor URLs being cited
+- Trends over time
+
+---
+
+## Legacy Files
+
+The following files are from v1.0 (SQLite-based system) and are kept for reference:
+- `test_openai.py` - Original OpenAI test script
+- `test_claude.py` - Original Claude test script
+- `view_database.py` - SQLite database viewer
+
+To migrate old data: `python migrate_sqlite_to_mysql.py`
 
