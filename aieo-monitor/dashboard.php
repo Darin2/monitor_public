@@ -3,11 +3,11 @@
 $db = new SQLite3('query_responses.db');
 
 // Get summary statistics
-$summary = $db->querySingle('SELECT COUNT(*) as total FROM responses', true);
-$totalQueries = $summary['total'];
-
 $citedCount = $db->querySingle('SELECT COUNT(*) as count FROM responses WHERE paintballevents_referenced = 1', true);
 $citedQueries = $citedCount['count'];
+
+$totalCount = $db->querySingle('SELECT COUNT(*) as total FROM responses', true);
+$totalQueries = $totalCount['total'];
 
 $citationRate = $totalQueries > 0 ? round(($citedQueries / $totalQueries) * 100, 1) : 0;
 
@@ -15,13 +15,13 @@ $citationRate = $totalQueries > 0 ? round(($citedQueries / $totalQueries) * 100,
 $modelQuery = "
     SELECT 
         model,
-        COUNT(*) as times_tested,
         SUM(paintballevents_referenced) as times_cited,
+        COUNT(*) as times_tested,
         ROUND(CAST(SUM(paintballevents_referenced) AS FLOAT) / COUNT(*) * 100, 1) as citation_rate
     FROM responses
     WHERE model IS NOT NULL
     GROUP BY model
-    ORDER BY times_tested DESC
+    ORDER BY model
 ";
 $modelResults = $db->query($modelQuery);
 $modelData = [];
@@ -29,89 +29,40 @@ while ($row = $modelResults->fetchArray(SQLITE3_ASSOC)) {
     $modelData[] = $row;
 }
 
-// Get query pattern data
-$queryPattern = "
+// Get citations over time per model
+$timeSeriesQuery = "
     SELECT 
-        query,
-        COUNT(*) as times_tested,
-        SUM(paintballevents_referenced) as times_cited,
-        ROUND(CAST(SUM(paintballevents_referenced) AS FLOAT) / COUNT(*) * 100, 1) as citation_rate
-    FROM responses
-    GROUP BY query
-    ORDER BY times_tested DESC
-    LIMIT 10
-";
-$queryResults = $db->query($queryPattern);
-$queryData = [];
-while ($row = $queryResults->fetchArray(SQLITE3_ASSOC)) {
-    $queryData[] = $row;
-}
-
-// Get query + model combination data
-$combinationQuery = "
-    SELECT 
-        query,
+        DATE(timestamp) as date,
         model,
-        COUNT(*) as times_tested,
-        SUM(paintballevents_referenced) as times_cited,
-        ROUND(CAST(SUM(paintballevents_referenced) AS FLOAT) / COUNT(*) * 100, 1) as citation_rate
+        SUM(paintballevents_referenced) as citations,
+        COUNT(*) as total_queries
     FROM responses
     WHERE model IS NOT NULL
-    GROUP BY query, model
-    ORDER BY query, model
+    GROUP BY DATE(timestamp), model
+    ORDER BY date ASC, model
 ";
-$combinationResults = $db->query($combinationQuery);
-$combinationData = [];
-while ($row = $combinationResults->fetchArray(SQLITE3_ASSOC)) {
-    $combinationData[] = $row;
+$timeSeriesResults = $db->query($timeSeriesQuery);
+$timeSeriesData = [];
+while ($row = $timeSeriesResults->fetchArray(SQLITE3_ASSOC)) {
+    $timeSeriesData[] = $row;
 }
 
-// Get recent responses
+// Get recent citation events
 $recentQuery = "
     SELECT 
-        id,
         timestamp,
-        query,
         model,
-        paintballevents_referenced,
+        query,
         cited_urls
     FROM responses
+    WHERE paintballevents_referenced = 1
     ORDER BY timestamp DESC
-    LIMIT 10
+    LIMIT 20
 ";
 $recentResults = $db->query($recentQuery);
 $recentData = [];
 while ($row = $recentResults->fetchArray(SQLITE3_ASSOC)) {
     $recentData[] = $row;
-}
-
-// Get detailed query breakdown
-$detailedQuery = "
-    SELECT 
-        query,
-        model,
-        COUNT(*) as times_tested,
-        SUM(paintballevents_referenced) as times_cited,
-        ROUND(CAST(SUM(paintballevents_referenced) AS FLOAT) / COUNT(*) * 100, 1) as citation_rate,
-        GROUP_CONCAT(id) as response_ids
-    FROM responses
-    GROUP BY query, model
-    ORDER BY query, model
-";
-$detailedResults = $db->query($detailedQuery);
-$detailedData = [];
-while ($row = $detailedResults->fetchArray(SQLITE3_ASSOC)) {
-    $query = $row['query'];
-    if (!isset($detailedData[$query])) {
-        $detailedData[$query] = [
-            'total_tests' => 0,
-            'total_citations' => 0,
-            'models' => []
-        ];
-    }
-    $detailedData[$query]['total_tests'] += $row['times_tested'];
-    $detailedData[$query]['total_citations'] += $row['times_cited'];
-    $detailedData[$query]['models'][] = $row;
 }
 
 $db->close();
@@ -232,9 +183,15 @@ $db->close();
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin-bottom: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         .stat-card {
@@ -430,160 +387,6 @@ $db->close();
             opacity: 0.8;
         }
         
-        .query-breakdown {
-            margin-bottom: 30px;
-        }
-        
-        .query-item {
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00d9ff;
-            margin-bottom: 15px;
-            overflow: hidden;
-            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .query-item:hover {
-            box-shadow: 0 0 25px rgba(0, 217, 255, 0.5);
-        }
-        
-        .query-header {
-            padding: 20px 25px;
-            background: rgba(0, 217, 255, 0.05);
-            color: #00d9ff;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            border-bottom: 1px solid rgba(0, 217, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .query-header:hover {
-            background: rgba(0, 217, 255, 0.1);
-            text-shadow: 0 0 8px rgba(0, 217, 255, 0.8);
-        }
-        
-        .query-title {
-            font-size: 0.95em;
-            font-weight: 600;
-            flex: 1;
-            letter-spacing: 0.5px;
-        }
-        
-        .query-stats {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .query-stat {
-            text-align: center;
-            padding: 5px 15px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(0, 217, 255, 0.3);
-            font-size: 0.85em;
-        }
-        
-        .query-stat-value {
-            font-weight: 700;
-            font-size: 1.3em;
-            text-shadow: 0 0 8px rgba(0, 217, 255, 0.6);
-        }
-        
-        .query-stat-label {
-            font-size: 0.75em;
-            opacity: 0.8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .toggle-icon {
-            font-size: 1.5em;
-            transition: transform 0.3s ease;
-            text-shadow: 0 0 8px rgba(0, 217, 255, 0.6);
-        }
-        
-        .query-item.active .toggle-icon {
-            transform: rotate(180deg);
-        }
-        
-        .query-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        
-        .query-item.active .query-content {
-            max-height: 1000px;
-        }
-        
-        .query-models {
-            padding: 25px;
-            background: rgba(0, 0, 0, 0.4);
-        }
-        
-        .model-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 15px;
-            padding: 15px;
-            margin-bottom: 10px;
-            background: rgba(0, 217, 255, 0.05);
-            border: 1px solid rgba(0, 217, 255, 0.2);
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-        
-        .model-row:hover {
-            background: rgba(0, 217, 255, 0.1);
-            border-color: #00d9ff;
-            box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
-        }
-        
-        .model-name {
-            font-weight: 600;
-            color: #00d9ff;
-            text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
-        }
-        
-        .model-metric {
-            text-align: center;
-        }
-        
-        .model-metric-value {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: #00d9ff;
-            text-shadow: 0 0 8px rgba(0, 217, 255, 0.6);
-        }
-        
-        .model-metric-label {
-            font-size: 0.7em;
-            color: #0af;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.8;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(0, 217, 255, 0.3);
-            overflow: hidden;
-            margin-top: 8px;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00d9ff 0%, #0af 100%);
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px rgba(0, 217, 255, 0.8);
-        }
-        
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.6em;
@@ -604,20 +407,6 @@ $db->close();
             th, td {
                 padding: 8px;
                 font-size: 0.85em;
-            }
-            
-            .model-row {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            
-            .query-stat {
-                font-size: 0.75em;
-                padding: 4px 10px;
-            }
-            
-            .query-stats {
-                gap: 10px;
             }
         }
         
@@ -649,148 +438,73 @@ $db->close();
         
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>TOTAL_QUERIES</h3>
-                <div class="value"><?php echo $totalQueries; ?></div>
-                <div class="label">:: API CALLS EXECUTED</div>
-            </div>
-            
-            <div class="stat-card">
-                <h3>CITATIONS_DETECTED</h3>
+                <h3>TOTAL_CITATIONS</h3>
                 <div class="value"><?php echo $citedQueries; ?></div>
-                <div class="label">:: PAINTBALLEVENTS.NET REFS</div>
+                <div class="label">:: PAINTBALLEVENTS.NET REFERENCES</div>
             </div>
             
             <div class="stat-card">
                 <h3>CITATION_RATE</h3>
                 <div class="value"><?php echo $citationRate; ?>%</div>
-                <div class="label">:: SYSTEM PERFORMANCE</div>
+                <div class="label">:: <?php echo $citedQueries; ?> / <?php echo $totalQueries; ?> QUERIES</div>
             </div>
             
             <div class="stat-card">
-                <h3>MODELS_ACTIVE</h3>
+                <h3>MODELS_TRACKED</h3>
                 <div class="value"><?php echo count($modelData); ?></div>
-                <div class="label">:: AI MODELS TRACKED</div>
+                <div class="label">:: ACTIVE LLM SYSTEMS</div>
             </div>
         </div>
         
         <div class="chart-grid">
+            <div class="chart-card full-width">
+                <h2>> CITATIONS_OVER_TIME_PER_LLM</h2>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="timeSeriesChart"></canvas>
+                </div>
+            </div>
+            
             <div class="chart-card">
-                <h2>> MODEL_PERFORMANCE_ANALYSIS</h2>
+                <h2>> TOTAL_CITATIONS_BY_MODEL</h2>
                 <div class="chart-container">
                     <canvas id="modelChart"></canvas>
                 </div>
             </div>
             
             <div class="chart-card">
-                <h2>> CITATION_RATE_METRICS</h2>
+                <h2>> CITATION_RATE_BY_MODEL</h2>
                 <div class="chart-container">
                     <canvas id="citationRateChart"></canvas>
                 </div>
             </div>
-            
-            <div class="chart-card full-width">
-                <h2>> QUERY_PATTERN_ANALYSIS</h2>
-                <div class="chart-container" style="height: 400px;">
-                    <canvas id="queryChart"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <div class="query-breakdown">
-            <div style="background: rgba(0, 0, 0, 0.8); border: 2px solid #00d9ff; padding: 25px; box-shadow: 0 0 15px rgba(0, 217, 255, 0.3); margin-bottom: 20px; position: relative;">
-                <div style="content: ''; position: absolute; top: -12px; left: 20px; background: #0a0a0a; padding: 0 10px; font-size: 0.7em; letter-spacing: 2px; color: #0af; text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);">[ DETAILED ANALYSIS ]</div>
-                <h2 style="margin-bottom: 10px; color: #00d9ff; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 8px rgba(0, 217, 255, 0.6); margin-top: 10px;">> QUERY_BREAKDOWN_MATRIX</h2>
-                <p style="color: #0af; margin-bottom: 20px; font-size: 0.9em; letter-spacing: 0.5px;">// Expand query records for model-specific performance data</p>
-            </div>
-            
-            <?php foreach ($detailedData as $query => $data): 
-                $overallRate = $data['total_tests'] > 0 ? round(($data['total_citations'] / $data['total_tests']) * 100, 1) : 0;
-            ?>
-            <div class="query-item">
-                <div class="query-header" onclick="toggleQuery(this)">
-                    <div class="query-title"><?php echo htmlspecialchars($query); ?></div>
-                    <div class="query-stats">
-                        <div class="query-stat">
-                            <div class="query-stat-value"><?php echo $data['total_tests']; ?></div>
-                            <div class="query-stat-label">Tests</div>
-                        </div>
-                        <div class="query-stat">
-                            <div class="query-stat-value"><?php echo $data['total_citations']; ?></div>
-                            <div class="query-stat-label">Citations</div>
-                        </div>
-                        <div class="query-stat">
-                            <div class="query-stat-value"><?php echo $overallRate; ?>%</div>
-                            <div class="query-stat-label">Rate</div>
-                        </div>
-                        <div class="toggle-icon">▼</div>
-                    </div>
-                </div>
-                <div class="query-content">
-                    <div class="query-models">
-                        <?php foreach ($data['models'] as $model): ?>
-                        <div class="model-row">
-                            <div class="model-name">
-                                <?php 
-                                $modelName = $model['model'] ?? 'Unknown';
-                                $displayName = str_replace(
-                                    ['claude-3-7-sonnet-20250219', 'gpt-4o'],
-                                    ['Claude 3.7 Sonnet', 'GPT-4o'],
-                                    $modelName
-                                );
-                                echo htmlspecialchars($displayName);
-                                ?>
-                            </div>
-                            <div class="model-metric">
-                                <div class="model-metric-value"><?php echo $model['times_tested']; ?></div>
-                                <div class="model-metric-label">Tests</div>
-                            </div>
-                            <div class="model-metric">
-                                <div class="model-metric-value"><?php echo $model['times_cited']; ?></div>
-                                <div class="model-metric-label">Citations</div>
-                            </div>
-                            <div class="model-metric">
-                                <div class="model-metric-value"><?php echo $model['citation_rate']; ?>%</div>
-                                <div class="model-metric-label">Rate</div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: <?php echo $model['citation_rate']; ?>%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
-            <?php endforeach; ?>
         </div>
         
         <div class="table-container">
-            <h2 style="margin-bottom: 20px; margin-top: 10px; color: #00d9ff; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 8px rgba(0, 217, 255, 0.6);">> RECENT_ACTIVITY_LOG</h2>
+            <h2 style="margin-bottom: 20px; margin-top: 10px; color: #00d9ff; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 8px rgba(0, 217, 255, 0.6);">> RECENT_CITATIONS_LOG</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>TIMESTAMP</th>
-                        <th>QUERY_STRING</th>
-                        <th>MODEL_ID</th>
-                        <th>STATUS</th>
-                        <th>URLS</th>
+                        <th>MODEL</th>
+                        <th>QUERY</th>
+                        <th>URLS_CITED</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($recentData as $row): ?>
                     <tr>
-                        <td><?php echo $row['id']; ?></td>
-                        <td class="timestamp"><?php echo date('M j, Y g:i A', strtotime($row['timestamp'])); ?></td>
-                        <td><?php echo htmlspecialchars(substr($row['query'], 0, 60)) . (strlen($row['query']) > 60 ? '...' : ''); ?></td>
-                        <td><span class="model-tag"><?php echo htmlspecialchars($row['model'] ?? 'N/A'); ?></span></td>
-                        <td>
-                            <?php if ($row['paintballevents_referenced']): ?>
-                                <span class="badge badge-success">✓ YES</span>
-                            <?php else: ?>
-                                <span class="badge badge-danger">✗ NO</span>
-                            <?php endif; ?>
-                        </td>
-                        <td><?php echo $row['cited_urls'] ? count(json_decode($row['cited_urls'])) : 0; ?></td>
+                        <td class="timestamp"><?php echo date('M j, g:i A', strtotime($row['timestamp'])); ?></td>
+                        <td><span class="model-tag"><?php 
+                            $modelName = $row['model'] ?? 'N/A';
+                            $displayName = str_replace(
+                                ['claude-3-7-sonnet-20250219', 'gpt-4o'],
+                                ['Claude 3.7', 'GPT-4o'],
+                                $modelName
+                            );
+                            echo htmlspecialchars($displayName);
+                        ?></span></td>
+                        <td><?php echo htmlspecialchars(substr($row['query'], 0, 80)) . (strlen($row['query']) > 80 ? '...' : ''); ?></td>
+                        <td style="text-align: center;"><span class="badge badge-success"><?php echo $row['cited_urls'] ? count(json_decode($row['cited_urls'])) : 0; ?></span></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -799,159 +513,56 @@ $db->close();
     </div>
     
     <script>
-        // Toggle query expansion
-        function toggleQuery(header) {
-            const queryItem = header.parentElement;
-            queryItem.classList.toggle('active');
-        }
-        
-        // Model Performance Chart
+        // Prepare data
         const modelData = <?php echo json_encode($modelData); ?>;
+        const timeSeriesData = <?php echo json_encode($timeSeriesData); ?>;
+        
         const modelLabels = modelData.map(m => m.model ? m.model.replace('claude-3-7-sonnet-20250219', 'Claude 3.7').replace('gpt-4o', 'GPT-4o') : 'Unknown');
-        const modelTests = modelData.map(m => m.times_tested);
         const modelCitations = modelData.map(m => m.times_cited);
-        
-        new Chart(document.getElementById('modelChart'), {
-            type: 'bar',
-            data: {
-                labels: modelLabels,
-                datasets: [
-                    {
-                        label: 'Tests Run',
-                        data: modelTests,
-                        backgroundColor: 'rgba(0, 217, 255, 0.3)',
-                        borderColor: 'rgba(0, 217, 255, 1)',
-                        borderWidth: 2,
-                        borderRadius: 5
-                    },
-                    {
-                        label: 'Citations Found',
-                        data: modelCitations,
-                        backgroundColor: 'rgba(0, 255, 136, 0.3)',
-                        borderColor: 'rgba(0, 255, 136, 1)',
-                        borderWidth: 2,
-                        borderRadius: 5
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: { size: 11, weight: '600', family: "'IBM Plex Mono', monospace" },
-                            color: '#00d9ff'
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { 
-                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
-                            color: '#0af'
-                        },
-                        grid: { color: 'rgba(0, 217, 255, 0.1)' },
-                        border: { color: '#00d9ff' }
-                    },
-                    x: {
-                        ticks: { 
-                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
-                            color: '#0af'
-                        },
-                        grid: { display: false },
-                        border: { color: '#00d9ff' }
-                    }
-                }
-            }
-        });
-        
-        // Citation Rate Chart
         const citationRates = modelData.map(m => m.citation_rate);
         
-        new Chart(document.getElementById('citationRateChart'), {
-            type: 'doughnut',
-            data: {
-                labels: modelLabels,
-                datasets: [{
-                    data: citationRates,
-                    backgroundColor: [
-                        'rgba(0, 217, 255, 0.6)',
-                        'rgba(0, 170, 255, 0.6)',
-                        'rgba(0, 255, 136, 0.6)',
-                        'rgba(0, 200, 200, 0.6)'
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#0a0a0a',
-                    hoverBorderColor: '#00d9ff',
-                    hoverBorderWidth: 3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: { size: 11, weight: '600', family: "'IBM Plex Mono', monospace" },
-                            color: '#00d9ff'
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                        borderColor: '#00d9ff',
-                        borderWidth: 1,
-                        titleFont: { family: "'IBM Plex Mono', monospace" },
-                        bodyFont: { family: "'IBM Plex Mono', monospace" },
-                        callbacks: {
-                            label: function(context) {
-                                return context.label + ': ' + context.parsed + '%';
-                            }
-                        }
-                    }
-                }
-            }
+        // Process time series data per model
+        const uniqueDates = [...new Set(timeSeriesData.map(d => d.date))].sort();
+        const uniqueModels = [...new Set(timeSeriesData.map(d => d.model))];
+        
+        const colors = [
+            { bg: 'rgba(0, 217, 255, 0.3)', border: 'rgba(0, 217, 255, 1)' },
+            { bg: 'rgba(0, 255, 136, 0.3)', border: 'rgba(0, 255, 136, 1)' },
+            { bg: 'rgba(255, 170, 0, 0.3)', border: 'rgba(255, 170, 0, 1)' },
+            { bg: 'rgba(170, 0, 255, 0.3)', border: 'rgba(170, 0, 255, 1)' }
+        ];
+        
+        const timeSeriesDatasets = uniqueModels.map((model, idx) => {
+            const modelName = model.replace('claude-3-7-sonnet-20250219', 'Claude 3.7').replace('gpt-4o', 'GPT-4o');
+            const data = uniqueDates.map(date => {
+                const entry = timeSeriesData.find(d => d.date === date && d.model === model);
+                return entry ? entry.citations : 0;
+            });
+            
+            return {
+                label: modelName,
+                data: data,
+                backgroundColor: colors[idx % colors.length].bg,
+                borderColor: colors[idx % colors.length].border,
+                borderWidth: 2,
+                fill: false,
+                tension: 0.3,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            };
         });
         
-        // Query Pattern Chart
-        const queryData = <?php echo json_encode($queryData); ?>;
-        const queryLabels = queryData.map(q => {
-            const query = q.query || '';
-            return query.length > 40 ? query.substring(0, 40) + '...' : query;
-        });
-        const queryTests = queryData.map(q => q.times_tested);
-        const queryCitations = queryData.map(q => q.times_cited);
-        
-        new Chart(document.getElementById('queryChart'), {
-            type: 'bar',
+        // Time Series Chart
+        new Chart(document.getElementById('timeSeriesChart'), {
+            type: 'line',
             data: {
-                labels: queryLabels,
-                datasets: [
-                    {
-                        label: 'Tests Run',
-                        data: queryTests,
-                        backgroundColor: 'rgba(0, 217, 255, 0.3)',
-                        borderColor: 'rgba(0, 217, 255, 1)',
-                        borderWidth: 2,
-                        borderRadius: 4
-                    },
-                    {
-                        label: 'Citations Found',
-                        data: queryCitations,
-                        backgroundColor: 'rgba(0, 255, 136, 0.3)',
-                        borderColor: 'rgba(0, 255, 136, 1)',
-                        borderWidth: 2,
-                        borderRadius: 4
-                    }
-                ]
+                labels: uniqueDates.map(d => {
+                    const date = new Date(d + 'T00:00:00');
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }),
+                datasets: timeSeriesDatasets
             },
             options: {
-                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
@@ -972,18 +583,130 @@ $db->close();
                     }
                 },
                 scales: {
-                    x: {
+                    y: {
                         beginAtZero: true,
+                        ticks: { 
+                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
+                            color: '#0af',
+                            stepSize: 1
+                        },
+                        grid: { color: 'rgba(0, 217, 255, 0.1)' },
+                        border: { color: '#00d9ff' },
+                        title: {
+                            display: true,
+                            text: 'Citations',
+                            color: '#00d9ff',
+                            font: { size: 11, family: "'IBM Plex Mono', monospace" }
+                        }
+                    },
+                    x: {
                         ticks: { 
                             font: { size: 10, family: "'IBM Plex Mono', monospace" },
                             color: '#0af'
                         },
+                        grid: { display: false },
+                        border: { color: '#00d9ff' }
+                    }
+                }
+            }
+        });
+        
+        // Total Citations by Model Chart
+        new Chart(document.getElementById('modelChart'), {
+            type: 'bar',
+            data: {
+                labels: modelLabels,
+                datasets: [{
+                    label: 'Total Citations',
+                    data: modelCitations,
+                    backgroundColor: 'rgba(0, 255, 136, 0.3)',
+                    borderColor: 'rgba(0, 255, 136, 1)',
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { 
+                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
+                            color: '#0af',
+                            stepSize: 1
+                        },
                         grid: { color: 'rgba(0, 217, 255, 0.1)' },
                         border: { color: '#00d9ff' }
                     },
-                    y: {
+                    x: {
                         ticks: { 
-                            font: { size: 9, family: "'IBM Plex Mono', monospace" },
+                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
+                            color: '#0af'
+                        },
+                        grid: { display: false },
+                        border: { color: '#00d9ff' }
+                    }
+                }
+            }
+        });
+        
+        // Citation Rate Chart
+        new Chart(document.getElementById('citationRateChart'), {
+            type: 'bar',
+            data: {
+                labels: modelLabels,
+                datasets: [{
+                    label: 'Citation Rate (%)',
+                    data: citationRates,
+                    backgroundColor: 'rgba(0, 217, 255, 0.3)',
+                    borderColor: 'rgba(0, 217, 255, 1)',
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        borderColor: '#00d9ff',
+                        borderWidth: 1,
+                        titleFont: { family: "'IBM Plex Mono', monospace" },
+                        bodyFont: { family: "'IBM Plex Mono', monospace" },
+                        callbacks: {
+                            label: function(context) {
+                                return 'Rate: ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { 
+                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
+                            color: '#0af',
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: { color: 'rgba(0, 217, 255, 0.1)' },
+                        border: { color: '#00d9ff' }
+                    },
+                    x: {
+                        ticks: { 
+                            font: { size: 10, family: "'IBM Plex Mono', monospace" },
                             color: '#0af'
                         },
                         grid: { display: false },
