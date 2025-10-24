@@ -103,14 +103,16 @@ def store_response(conn, query, response_text, paintballevents_ref, search_query
 # Initialize database
 conn = init_database()
 
-# Test queries - all queries from the database
+# Test queries - optimized for scenario/magfed focus based on actual search data
 TEST_QUERIES = [
-    "Find paintball events in Texas in 2025 and list the websites you searched",
-    "Find paintball events in Texas in 2025",
-    "Find paintball events in Texas in 2025 and list the websites you referenced",
-    "What paintball tournaments are happening in Texas in 2025?",
-    "Find upcoming paintball scenario games and tournaments in Texas for 2025",
-    "Where can I find paintball events in Texas?"
+    "Find paintball scenario games in Texas for 2025",
+    "Where can I find scenario paintball events near me?",
+    "What are the upcoming paintball scenario games and big games in 2025?",
+    "Find magfed paintball events in Texas",
+    "Where can I play scenario paintball in Texas?",
+    "What paintball big games are happening in 2025?",
+    "Find upcoming scenario and magfed paintball events",
+    "Where are paintball scenario games in Texas in 2025?"
 ]
 
 # Define model to use
