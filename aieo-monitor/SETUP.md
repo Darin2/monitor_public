@@ -92,7 +92,7 @@ This monitoring system tracks whether AI models cite paintballevents.net when an
 
 1. **Upload Dashboard File**
    - Via FTP or cPanel File Manager
-   - Upload `dashboard_mysql.php` to your public_html directory
+   - Upload `monitor.php` to your public_html directory
    - Rename to `monitor.php` (or any name you prefer)
 
 2. **Configure Database Connection**
@@ -189,7 +189,7 @@ aieo-monitor/
 │   └── __init__.py
 ├── run_monitor.py                # Main orchestrator script
 ├── requirements.txt              # Python dependencies
-├── dashboard_mysql.php           # Dashboard for Bluehost
+├── monitor.php                   # Dashboard for Bluehost
 └── SETUP.md                      # This file
 ```
 
@@ -249,7 +249,7 @@ paintballevents_referenced, search_query, cited_urls, response_time_ms, error
 
 **Blank page or errors**
 - Check PHP error logs in cPanel
-- Verify database credentials in dashboard_mysql.php
+- Verify database credentials in monitor.php
 - Ensure database has data: `SELECT COUNT(*) FROM responses;`
 
 **Connection errors**

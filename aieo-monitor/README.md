@@ -27,7 +27,7 @@ See [SETUP.md](SETUP.md) for detailed setup instructions.
 1. Create MySQL database on Bluehost
 2. Run `database/schema.sql` 
 3. Add secrets to GitHub repository
-4. Upload `dashboard_mysql.php` to Bluehost
+4. Upload `monitor.php` to Bluehost
 5. Done! Runs automatically every Monday.
 
 ## 📁 Project Structure
@@ -49,7 +49,7 @@ aieo-monitor/
 │   └── operations.py     # CRUD operations
 ├── run_monitor.py        # Main orchestrator
 ├── requirements.txt      # Python dependencies
-├── dashboard_mysql.php   # Web dashboard
+├── monitor.php           # Web dashboard
 └── SETUP.md             # Setup instructions
 ```
 

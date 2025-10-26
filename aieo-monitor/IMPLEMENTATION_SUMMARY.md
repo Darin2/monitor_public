@@ -34,7 +34,7 @@ aieo-monitor/
 ├── run_monitor.py                # Main orchestrator
 ├── test_connection.py            # Database connection tester
 ├── migrate_sqlite_to_mysql.py    # Migrate old data
-├── dashboard_mysql.php           # Beautiful dashboard for Bluehost
+├── monitor.php                   # Beautiful dashboard for Bluehost
 ├── requirements.txt              # Python dependencies
 ├── .env.example                  # Environment variable template
 ├── .gitignore                    # Git ignore rules
@@ -167,7 +167,7 @@ MYSQL_PASSWORD=your_password
 
 ### Step 4: Deploy Dashboard (3 minutes)
 
-1. Upload `dashboard_mysql.php` to Bluehost public_html
+1. Upload `monitor.php` to Bluehost public_html
 2. Rename to `monitor.php` (or any name)
 3. Edit credentials at top of file OR set in `.htaccess`
 4. Visit: `https://darin.tech/monitor.php`

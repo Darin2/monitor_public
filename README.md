@@ -85,7 +85,7 @@ See [aieo-monitor/SETUP.md](aieo-monitor/SETUP.md) for detailed setup instructio
 1. Create MySQL database on Bluehost
 2. Run `aieo-monitor/database/schema.sql`
 3. Add secrets to GitHub repository
-4. Upload `aieo-monitor/dashboard_mysql.php` to Bluehost
+4. Upload `aieo-monitor/monitor.php` to Bluehost
 5. Done! Runs automatically every Monday.
 
 ### Local Development
@@ -116,7 +116,7 @@ monitor/
 │   ├── models/                # AI model implementations
 │   ├── database/              # Database schema and operations
 │   ├── run_monitor.py         # Main orchestrator
-│   ├── dashboard_mysql.php    # Web dashboard
+│   ├── monitor.php            # Web dashboard
 │   ├── SETUP.md              # Detailed setup guide
 │   └── README.md             # Module documentation
 ├── aieo-optimization/         # SEO optimization tools

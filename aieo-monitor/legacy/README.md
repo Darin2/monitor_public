@@ -28,7 +28,7 @@ The new system uses:
 - **MySQL database** on Bluehost
 - **GitHub Actions** for automatic weekly execution
 - **Modular model system** - Easy to add new models
-- **Beautiful dashboard** (`dashboard_mysql.php`)
+- **Beautiful dashboard** (`monitor.php`)
 - **Full automation** - Runs every Monday automatically
 
 ## Migration
