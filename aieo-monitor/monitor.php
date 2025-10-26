@@ -22,17 +22,58 @@ try {
     die("Database connection failed: " . $e->getMessage());
 }
 
-// Get summary statistics
-$stmt = $db->query('SELECT COUNT(*) as count FROM responses WHERE paintballevents_referenced = 1');
+// Get filter parameters
+$filterModel = isset($_GET['model']) ? $_GET['model'] : '';
+$filterQuery = isset($_GET['query']) ? $_GET['query'] : '';
+
+// Build WHERE clause for filters
+$whereConditions = [];
+$params = [];
+
+if ($filterModel) {
+    $whereConditions[] = "m.name = :model";
+    $params[':model'] = $filterModel;
+}
+
+if ($filterQuery) {
+    $whereConditions[] = "r.query_text = :query";
+    $params[':query'] = $filterQuery;
+}
+
+$whereClause = !empty($whereConditions) ? 'AND ' . implode(' AND ', $whereConditions) : '';
+
+// Get all available models for dropdown
+$stmt = $db->query("SELECT DISTINCT name FROM models WHERE active = 1 ORDER BY name");
+$allModels = array_column($stmt->fetchAll(), 'name');
+
+// Get all unique queries for dropdown
+$stmt = $db->query("
+    SELECT DISTINCT query_text 
+    FROM responses 
+    WHERE query_text IS NOT NULL 
+    ORDER BY query_text
+");
+$allQueries = array_column($stmt->fetchAll(), 'query_text');
+
+// Get summary statistics with filters
+$sql = "SELECT COUNT(*) as count FROM responses r 
+        JOIN models m ON r.model_id = m.id 
+        WHERE r.paintballevents_referenced = 1 $whereClause";
+$stmt = $db->prepare($sql);
+$stmt->execute($params);
 $citedQueries = $stmt->fetch()['count'];
 
-$stmt = $db->query('SELECT COUNT(*) as total FROM responses');
+$sql = "SELECT COUNT(*) as total FROM responses r 
+        JOIN models m ON r.model_id = m.id 
+        WHERE 1=1 $whereClause";
+$stmt = $db->prepare($sql);
+$stmt->execute($params);
 $totalQueries = $stmt->fetch()['total'];
 
 $citationRate = $totalQueries > 0 ? round(($citedQueries / $totalQueries) * 100, 1) : 0;
 
-// Get model performance data using the view
-$stmt = $db->query("
+// Get model performance data with filters
+$sql = "
     SELECT 
         m.name as model,
         m.provider,
@@ -45,24 +86,20 @@ $stmt = $db->query("
         END as citation_rate,
         ROUND(AVG(r.response_time_ms)) as avg_response_time
     FROM models m
-    LEFT JOIN responses r ON m.id = r.model_id
+    LEFT JOIN responses r ON m.id = r.model_id " . ($filterQuery ? "AND r.query_text = :query" : "") . "
     WHERE m.active = 1
     GROUP BY m.id, m.name, m.provider
     ORDER BY m.name
-");
+";
+$stmt = $db->prepare($sql);
+if ($filterQuery) {
+    $stmt->bindParam(':query', $filterQuery);
+}
+$stmt->execute();
 $modelData = $stmt->fetchAll();
 
-// Get all unique queries
-$stmt = $db->query("
-    SELECT DISTINCT query_text 
-    FROM responses 
-    WHERE query_text IS NOT NULL 
-    ORDER BY query_text
-");
-$queries = array_column($stmt->fetchAll(), 'query_text');
-
 // Get citations over time per model (with query info)
-$stmt = $db->query("
+$sql = "
     SELECT 
         DATE(r.timestamp) as date,
         m.name as model,
@@ -71,13 +108,16 @@ $stmt = $db->query("
         COUNT(*) as total_queries
     FROM responses r
     JOIN models m ON r.model_id = m.id
+    WHERE 1=1 $whereClause
     GROUP BY DATE(r.timestamp), m.name, r.query_text
     ORDER BY date ASC, model, query
-");
+";
+$stmt = $db->prepare($sql);
+$stmt->execute($params);
 $timeSeriesData = $stmt->fetchAll();
 
-// Get recent citation events
-$stmt = $db->query("
+// Get recent citation events with filters
+$sql = "
     SELECT 
         r.timestamp,
         m.name as model,
@@ -85,11 +125,38 @@ $stmt = $db->query("
         r.cited_urls
     FROM responses r
     JOIN models m ON r.model_id = m.id
-    WHERE r.paintballevents_referenced = 1
+    WHERE r.paintballevents_referenced = 1 $whereClause
     ORDER BY r.timestamp DESC
     LIMIT 20
-");
+";
+$stmt = $db->prepare($sql);
+$stmt->execute($params);
 $recentData = $stmt->fetchAll();
+
+// Get query-specific stats when filtering by model
+$queryStats = [];
+if ($filterModel && !$filterQuery) {
+    $sql = "
+        SELECT 
+            r.query_text,
+            COUNT(*) as times_tested,
+            SUM(r.paintballevents_referenced) as times_cited,
+            CASE 
+                WHEN COUNT(*) > 0 
+                THEN ROUND(SUM(r.paintballevents_referenced) / COUNT(*) * 100, 1)
+                ELSE 0 
+            END as citation_rate
+        FROM responses r
+        JOIN models m ON r.model_id = m.id
+        WHERE m.name = :model AND r.query_text IS NOT NULL
+        GROUP BY r.query_text
+        ORDER BY r.query_text
+    ";
+    $stmt = $db->prepare($sql);
+    $stmt->bindParam(':model', $filterModel);
+    $stmt->execute();
+    $queryStats = $stmt->fetchAll();
+}
 
 // Get latest run info
 $stmt = $db->query("
@@ -420,6 +487,138 @@ $db = null; // Close connection
             opacity: 0.7;
             margin-right: 10px;
         }
+        
+        .filter-container {
+            background: rgba(0, 217, 255, 0.03);
+            border: 2px solid #00d9ff;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.2), inset 0 0 15px rgba(0, 217, 255, 0.03);
+            position: relative;
+        }
+        
+        .filter-container::before {
+            content: '> FILTER CONTROLS_';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #0a0a0a;
+            padding: 0 10px;
+            font-size: 0.85em;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #00d9ff;
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        @media (max-width: 768px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            opacity: 0.7;
+        }
+        
+        .filter-group select {
+            background: rgba(0, 217, 255, 0.05);
+            border: 1px solid #00d9ff;
+            color: #00d9ff;
+            padding: 10px 15px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-group select:hover,
+        .filter-group select:focus {
+            background: rgba(0, 217, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+            outline: none;
+        }
+        
+        .filter-group select option {
+            background: #0a0a0a;
+            color: #00d9ff;
+        }
+        
+        .filter-btn {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 10px 20px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+            font-weight: 600;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .filter-btn.clear {
+            background: rgba(255, 136, 0, 0.1);
+            border-color: #ff8800;
+            color: #ff8800;
+            text-shadow: 0 0 5px rgba(255, 136, 0, 0.5);
+        }
+        
+        .filter-btn.clear:hover {
+            background: rgba(255, 136, 0, 0.2);
+            box-shadow: 0 0 15px rgba(255, 136, 0, 0.4);
+        }
+        
+        .active-filters {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 217, 255, 0.2);
+            font-size: 0.9em;
+        }
+        
+        .active-filters .filter-tag {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 5px 12px;
+            margin-right: 10px;
+            margin-top: 5px;
+            border-radius: 3px;
+            font-size: 0.85em;
+        }
+        
+        .clickable-cell {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .clickable-cell:hover {
+            color: #00ff88;
+            text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -427,6 +626,58 @@ $db = null; // Close connection
         <div class="header">
             <h1>AI CITATION MONITOR<span class="cursor">_</span></h1>
             <p>Tracking paintballevents.net citations across AI models</p>
+        </div>
+        
+        <!-- Filter Controls -->
+        <div class="filter-container">
+            <form method="GET" action="" id="filterForm">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label for="modelFilter">Filter by Model</label>
+                        <select name="model" id="modelFilter">
+                            <option value="">-- All Models --</option>
+                            <?php foreach ($allModels as $model): ?>
+                                <option value="<?php echo htmlspecialchars($model); ?>" 
+                                    <?php echo $filterModel === $model ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($model); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="queryFilter">Filter by Query</label>
+                        <select name="query" id="queryFilter">
+                            <option value="">-- All Queries --</option>
+                            <?php foreach ($allQueries as $query): ?>
+                                <option value="<?php echo htmlspecialchars($query); ?>"
+                                    <?php echo $filterQuery === $query ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars(strlen($query) > 60 ? substr($query, 0, 60) . '...' : $query); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <button type="submit" class="filter-btn">Apply</button>
+                        <?php if ($filterModel || $filterQuery): ?>
+                            <button type="button" class="filter-btn clear" onclick="window.location.href='<?php echo $_SERVER['PHP_SELF']; ?>'">Clear</button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                
+                <?php if ($filterModel || $filterQuery): ?>
+                <div class="active-filters">
+                    <strong>ACTIVE FILTERS:</strong>
+                    <?php if ($filterModel): ?>
+                        <span class="filter-tag">MODEL: <?php echo htmlspecialchars($filterModel); ?></span>
+                    <?php endif; ?>
+                    <?php if ($filterQuery): ?>
+                        <span class="filter-tag">QUERY: <?php echo htmlspecialchars(strlen($filterQuery) > 50 ? substr($filterQuery, 0, 50) . '...' : $filterQuery); ?></span>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+            </form>
         </div>
         
         <?php if ($latestRun): ?>
@@ -453,19 +704,41 @@ $db = null; // Close connection
             <div class="stat-card">
                 <div class="label">Total Queries</div>
                 <div class="value"><?php echo $totalQueries; ?></div>
-                <div class="subtext">Across all models</div>
+                <div class="subtext"><?php 
+                    if ($filterModel && $filterQuery) {
+                        echo 'For selected model + query';
+                    } elseif ($filterModel) {
+                        echo 'For ' . htmlspecialchars($filterModel);
+                    } elseif ($filterQuery) {
+                        echo 'For selected query';
+                    } else {
+                        echo 'Across all models';
+                    }
+                ?></div>
             </div>
             
             <div class="stat-card">
                 <div class="label">Citations Found</div>
                 <div class="value"><?php echo $citedQueries; ?></div>
-                <div class="subtext">paintballevents.net mentioned</div>
+                <div class="subtext"><?php 
+                    if ($filterModel || $filterQuery) {
+                        echo 'In filtered results';
+                    } else {
+                        echo 'paintballevents.net mentioned';
+                    }
+                ?></div>
             </div>
             
             <div class="stat-card">
                 <div class="label">Citation Rate</div>
                 <div class="value"><?php echo $citationRate; ?>%</div>
-                <div class="subtext">Overall performance</div>
+                <div class="subtext"><?php 
+                    if ($filterModel || $filterQuery) {
+                        echo 'Filtered performance';
+                    } else {
+                        echo 'Overall performance';
+                    }
+                ?></div>
             </div>
         </div>
         
@@ -473,7 +746,7 @@ $db = null; // Close connection
             <canvas id="modelChart"></canvas>
         </div>
         
-        <div class="chart-container" data-title="MODEL PERFORMANCE TABLE">
+        <div class="chart-container" data-title="<?php echo $filterQuery ? 'MODEL PERFORMANCE FOR SELECTED QUERY' : 'MODEL PERFORMANCE TABLE'; ?>">
             <table>
                 <thead>
                     <tr>
@@ -488,7 +761,11 @@ $db = null; // Close connection
                 <tbody>
                     <?php foreach ($modelData as $model): ?>
                     <tr>
-                        <td><strong><?php echo htmlspecialchars($model['model']); ?></strong></td>
+                        <td>
+                            <strong class="clickable-cell" onclick="filterByModel('<?php echo htmlspecialchars($model['model'], ENT_QUOTES); ?>')">
+                                <?php echo htmlspecialchars($model['model']); ?>
+                            </strong>
+                        </td>
                         <td><?php echo htmlspecialchars($model['provider']); ?></td>
                         <td><?php echo $model['times_tested']; ?></td>
                         <td><?php echo $model['times_cited']; ?></td>
@@ -512,12 +789,55 @@ $db = null; // Close connection
             </table>
         </div>
         
-        <div class="chart-container" data-title="CITATION TIMELINE">
+        <?php if ($filterModel && !$filterQuery && !empty($queryStats)): ?>
+        <div class="chart-container" data-title="QUERIES TESTED WITH <?php echo strtoupper(htmlspecialchars($filterModel)); ?>">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Query</th>
+                        <th>Times Tested</th>
+                        <th>Times Cited</th>
+                        <th>Citation Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($queryStats as $stat): ?>
+                    <tr>
+                        <td>
+                            <span class="clickable-cell" onclick="filterByQuery('<?php echo htmlspecialchars($stat['query_text'], ENT_QUOTES); ?>')">
+                                <?php echo htmlspecialchars($stat['query_text']); ?>
+                            </span>
+                        </td>
+                        <td><?php echo $stat['times_tested']; ?></td>
+                        <td><?php echo $stat['times_cited']; ?></td>
+                        <td>
+                            <span class="badge <?php echo $stat['citation_rate'] > 0 ? 'success' : 'warning'; ?>">
+                                <?php echo $stat['citation_rate']; ?>%
+                            </span>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php endif; ?>
+        
+        <div class="chart-container" data-title="<?php 
+            if ($filterModel && $filterQuery) {
+                echo 'CITATION TIMELINE: ' . strtoupper(htmlspecialchars($filterModel)) . ' + SPECIFIC QUERY';
+            } elseif ($filterModel) {
+                echo 'CITATION TIMELINE: ' . strtoupper(htmlspecialchars($filterModel));
+            } elseif ($filterQuery) {
+                echo 'CITATION TIMELINE: SELECTED QUERY';
+            } else {
+                echo 'CITATION TIMELINE';
+            }
+        ?>">
             <canvas id="timelineChart"></canvas>
         </div>
         
         <?php if (!empty($recentData)): ?>
-        <div class="chart-container" data-title="RECENT CITATIONS">
+        <div class="chart-container" data-title="RECENT CITATIONS<?php echo ($filterModel || $filterQuery) ? ' (FILTERED)' : ''; ?>">
             <table>
                 <thead>
                     <tr>
@@ -531,8 +851,16 @@ $db = null; // Close connection
                     <?php foreach ($recentData as $citation): ?>
                     <tr>
                         <td class="timestamp"><?php echo date('Y-m-d H:i:s', strtotime($citation['timestamp'])); ?></td>
-                        <td><?php echo htmlspecialchars($citation['model']); ?></td>
-                        <td><?php echo htmlspecialchars(substr($citation['query'], 0, 60)) . (strlen($citation['query']) > 60 ? '...' : ''); ?></td>
+                        <td>
+                            <span class="clickable-cell" onclick="filterByModel('<?php echo htmlspecialchars($citation['model'], ENT_QUOTES); ?>')">
+                                <?php echo htmlspecialchars($citation['model']); ?>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="clickable-cell" onclick="filterByQuery('<?php echo htmlspecialchars($citation['query'], ENT_QUOTES); ?>')" title="<?php echo htmlspecialchars($citation['query']); ?>">
+                                <?php echo htmlspecialchars(substr($citation['query'], 0, 60)) . (strlen($citation['query']) > 60 ? '...' : ''); ?>
+                            </span>
+                        </td>
                         <td class="url-list">
                             <?php 
                             $urls = json_decode($citation['cited_urls'], true);
@@ -552,6 +880,21 @@ $db = null; // Close connection
     </div>
     
     <script>
+        // Filter helper functions
+        function filterByModel(modelName) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('model', modelName);
+            // Preserve existing query filter if present
+            window.location.href = url.toString();
+        }
+        
+        function filterByQuery(queryText) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('query', queryText);
+            // Preserve existing model filter if present
+            window.location.href = url.toString();
+        }
+        
         // Chart.js styling
         Chart.defaults.color = '#00d9ff';
         Chart.defaults.borderColor = 'rgba(0, 217, 255, 0.2)';
