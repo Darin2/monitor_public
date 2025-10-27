@@ -185,6 +185,7 @@ class MonitorOrchestrator:
                             self.run_id,
                             query['id'],
                             model.model_id,
+                            query['text'],
                             str(e)
                         )
             

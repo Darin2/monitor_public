@@ -151,7 +151,7 @@ class DatabaseManager:
         if cited_urls:
             print(f"    URLs: {len(cited_urls)} found")
     
-    def store_error(self, run_id: str, query_id: str, model_id: str, error: str):
+    def store_error(self, run_id: str, query_id: str, model_id: str, query_text: str, error: str):
         """Store an error that occurred during a query"""
         with self.connection.cursor() as cursor:
             sql = """
@@ -165,7 +165,7 @@ class DatabaseManager:
                 datetime.now(),
                 query_id,
                 model_id,
-                f"ERROR: {error}",
+                query_text,
                 "",
                 False,
                 error

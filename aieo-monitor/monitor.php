@@ -46,11 +46,12 @@ $whereClause = !empty($whereConditions) ? 'AND ' . implode(' AND ', $whereCondit
 $stmt = $db->query("SELECT DISTINCT name FROM models WHERE active = 1 ORDER BY name");
 $allModels = array_column($stmt->fetchAll(), 'name');
 
-// Get all unique queries for dropdown
+// Get all unique queries for dropdown (excluding error messages)
 $stmt = $db->query("
     SELECT DISTINCT query_text 
     FROM responses 
     WHERE query_text IS NOT NULL 
+    AND query_text NOT LIKE 'ERROR:%'
     ORDER BY query_text
 ");
 $allQueries = array_column($stmt->fetchAll(), 'query_text');
