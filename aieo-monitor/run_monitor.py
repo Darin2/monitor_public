@@ -171,13 +171,19 @@ class MonitorOrchestrator:
                         # Execute query
                         result = model.query(query['text'])
                         
+                        # Check if we got a valid response
+                        response_text = result.get('response_text', '')
+                        if not response_text or not response_text.strip():
+                            print(f"  ✗ Empty response (skipped) | {model.model_id} | {query['id']}")
+                            continue
+                        
                         # Extract metadata
                         search_query, cited_urls = model.extract_metadata(result)
                         
                         # Check if paintballevents.net is referenced
                         paintballevents_ref = self._check_reference(
                             cited_urls, 
-                            result.get('response_text', '')
+                            response_text
                         )
                         
                         # Store result in database
@@ -186,7 +192,7 @@ class MonitorOrchestrator:
                             query_id=query['id'],
                             query_text=query['text'],
                             model_id=model.model_id,
-                            response_text=result['response_text'],
+                            response_text=response_text,
                             paintballevents_ref=paintballevents_ref,
                             search_query=search_query,
                             cited_urls=cited_urls,
@@ -195,6 +201,7 @@ class MonitorOrchestrator:
                         
                     except Exception as e:
                         print(f"  ✗ Error: {str(e)[:100]}")
+                        # Log error and update error count (but don't store empty responses)
                         self.db.store_error(
                             self.run_id,
                             query['id'],

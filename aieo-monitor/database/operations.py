@@ -127,6 +127,11 @@ class DatabaseManager:
         error: Optional[str] = None
     ):
         """Store a query response in the database"""
+        # Don't store empty responses
+        if not response_text or not response_text.strip():
+            print(f"  ⚠️  Skipping empty response | {model_id} | {query_id}")
+            return
+        
         self._reconnect_if_needed()
         with self.connection.cursor() as cursor:
             # Convert cited_urls list to JSON
@@ -169,27 +174,13 @@ class DatabaseManager:
             print(f"    URLs: {len(cited_urls)} found")
     
     def store_error(self, run_id: str, query_id: str, model_id: str, query_text: str, error: str):
-        """Store an error that occurred during a query"""
+        """
+        Log an error that occurred during a query
+        Note: We no longer store errors in the responses table to avoid empty responses
+        """
         self._reconnect_if_needed()
         with self.connection.cursor() as cursor:
-            sql = """
-                INSERT INTO responses 
-                (run_id, timestamp, query_id, model_id, query_text, response, 
-                 paintballevents_referenced, error)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(sql, (
-                run_id,
-                datetime.now(),
-                query_id,
-                model_id,
-                query_text,
-                "",
-                False,
-                error
-            ))
-            
-            # Update error count
+            # Only update the error count in the runs table
             cursor.execute("""
                 UPDATE runs 
                 SET errors_count = errors_count + 1
