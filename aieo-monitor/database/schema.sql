@@ -57,7 +57,9 @@ CREATE TABLE IF NOT EXISTS responses (
 
 -- Insert default models
 INSERT INTO models (id, name, provider, active) VALUES
-('gpt-4o', 'GPT-4o', 'OpenAI', TRUE),
+('gpt-5', 'GPT-5', 'OpenAI', TRUE),
+('gpt-5-mini', 'GPT-5-mini', 'OpenAI', TRUE),
+('gpt-5-nano', 'GPT-5-nano', 'OpenAI', TRUE),
 ('claude-3-7-sonnet', 'Claude 3.7 Sonnet', 'Anthropic', TRUE),
 ('deepseek-chat', 'DeepSeek Chat', 'DeepSeek', FALSE),
 ('grok-2', 'Grok 2', 'xAI', FALSE),

@@ -8,7 +8,7 @@ Track whether LLMs cite or recommend **paintballevents.net** when responding to 
 
 For each LLM query, log:
 - **Query text** - The exact question/prompt used
-- **Model** - Which LLM model was used (e.g., "gpt-4o", "claude-3.7-sonnet", "perplexity-sonar-pro")
+- **Model** - Which LLM model was used (e.g., "gpt-5", "gpt-5-mini", "gpt-5-nano", "claude-3.7-sonnet", "perplexity-sonar-pro")
 - **Timestamp** - When the query was made
 - **Cited URLs** - URLs the LLM actually searched/cited (extracted from API metadata when available)
 - **paintballevents.net cited** - Boolean: Was paintballevents.net in the cited URLs?
@@ -46,7 +46,7 @@ CREATE TABLE responses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT NOT NULL,
     query TEXT NOT NULL,
-    model TEXT NOT NULL,           -- e.g., "gpt-4o", "claude-3.7-sonnet"
+    model TEXT NOT NULL,           -- e.g., "gpt-5", "gpt-5-mini", "gpt-5-nano", "claude-3.7-sonnet"
     response TEXT NOT NULL,
     paintballevents_referenced BOOLEAN NOT NULL,
     search_query TEXT,             -- The search query the LLM used
@@ -59,14 +59,14 @@ CREATE TABLE responses (
 ## Starting Simple, Then Expanding
 
 ### Phase 1 (Current)
-- One query
-- One model (OpenAI gpt-4o)
+- Multiple queries
+- Multiple OpenAI models (GPT-5, GPT-5-mini, GPT-5-nano)
+- Claude 3.7 Sonnet
 - Run weekly via cron job
-- Store in SQLite
+- Store in MySQL
 
 ### Phase 2 (Planned)
 - Add more models:
-  - Claude 3.7 Sonnet (Anthropic)
   - Perplexity Sonar Pro
   - DeepSeek
   - Gemini

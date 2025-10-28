@@ -26,7 +26,7 @@ class BaseModel(ABC):
         Return the model identifier (matches models table in database)
         
         Returns:
-            Model ID string (e.g., 'gpt-4o', 'claude-3-7-sonnet')
+            Model ID string (e.g., 'gpt-5', 'gpt-5-mini', 'claude-3-7-sonnet')
         """
         pass
     
@@ -37,7 +37,7 @@ class BaseModel(ABC):
         Return the human-readable model name
         
         Returns:
-            Model name string (e.g., 'GPT-4o', 'Claude 3.7 Sonnet')
+            Model name string (e.g., 'GPT-5', 'GPT-5-mini', 'Claude 3.7 Sonnet')
         """
         pass
     

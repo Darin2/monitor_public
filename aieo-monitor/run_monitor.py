@@ -16,7 +16,9 @@ from dotenv import load_dotenv
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from database.operations import DatabaseManager
-from models.openai_model import OpenAIModel
+from models.gpt5_model import GPT5Model
+from models.gpt5_mini_model import GPT5MiniModel
+from models.gpt5_nano_model import GPT5NanoModel
 from models.claude_model import ClaudeModel
 from models.deepseek_model import DeepSeekModel
 from models.grok_model import GrokModel
@@ -50,13 +52,25 @@ class MonitorOrchestrator:
         """Initialize all active models that have API keys configured"""
         models = []
         
-        # OpenAI GPT-4o
+        # OpenAI GPT-5 models
         if os.getenv("OPENAI_API_KEY"):
             try:
-                models.append(OpenAIModel(os.getenv("OPENAI_API_KEY")))
-                print("✓ OpenAI model initialized")
+                models.append(GPT5Model(os.getenv("OPENAI_API_KEY")))
+                print("✓ GPT-5 model initialized")
             except Exception as e:
-                print(f"✗ OpenAI model failed to initialize: {e}")
+                print(f"✗ GPT-5 model failed to initialize: {e}")
+            
+            try:
+                models.append(GPT5MiniModel(os.getenv("OPENAI_API_KEY")))
+                print("✓ GPT-5-mini model initialized")
+            except Exception as e:
+                print(f"✗ GPT-5-mini model failed to initialize: {e}")
+            
+            try:
+                models.append(GPT5NanoModel(os.getenv("OPENAI_API_KEY")))
+                print("✓ GPT-5-nano model initialized")
+            except Exception as e:
+                print(f"✗ GPT-5-nano model failed to initialize: {e}")
         
         # Anthropic Claude
         if os.getenv("ANTHROPIC_API_KEY"):

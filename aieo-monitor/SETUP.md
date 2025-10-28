@@ -176,7 +176,9 @@ aieo-monitor/
 │   └── queries.json              # Test queries configuration
 ├── models/
 │   ├── base_model.py             # Abstract base class
-│   ├── openai_model.py           # OpenAI GPT-4o
+│   ├── gpt5_model.py             # OpenAI GPT-5
+│   ├── gpt5_mini_model.py        # OpenAI GPT-5-mini
+│   ├── gpt5_nano_model.py        # OpenAI GPT-5-nano
 │   ├── claude_model.py           # Anthropic Claude
 │   ├── deepseek_model.py         # DeepSeek (stub)
 │   ├── grok_model.py             # Grok (stub)

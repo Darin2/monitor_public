@@ -116,12 +116,14 @@
          ┌─────────┴─────────────────────────┐
          │                                   │
 ┌────────▼────────┐              ┌──────────▼────────┐
-│  OpenAIModel    │              │   ClaudeModel     │
+│  GPT5Model      │              │   ClaudeModel     │
 ├─────────────────┤              ├───────────────────┤
-│ • GPT-4o        │              │ • Claude 3.7      │
-│ • Web search    │              │ • Web search      │
-│ • Citation ext. │              │ • URL extraction  │
-└─────────────────┘              └───────────────────┘
+│ • GPT-5         │              │ • Claude 3.7      │
+│ • GPT-5-mini    │              │ • Web search      │
+│ • GPT-5-nano    │              │ • URL extraction  │
+│ • Web search    │              └───────────────────┘
+│ • Citation ext. │
+└─────────────────┘
          │                                   │
          │       ┌─────────────┐             │
          └───────┤  + 4 more   ├─────────────┘
@@ -176,7 +178,7 @@
       │
 3. Initialize Models
    │
-   ├─ Check for OPENAI_API_KEY → Create OpenAIModel
+   ├─ Check for OPENAI_API_KEY → Create GPT5Model, GPT5MiniModel, GPT5NanoModel
    ├─ Check for ANTHROPIC_API_KEY → Create ClaudeModel
    └─ Check for other keys → Create other models
       │
@@ -220,7 +222,7 @@ Single Query Execution:
    │
 2. Model Implementation:
    │
-   ├─ OpenAI: client.responses.create(model="gpt-4o", tools=[web_search])
+   ├─ OpenAI: client.responses.create(model="gpt-5"|"gpt-5-mini"|"gpt-5-nano", tools=[web_search])
    │           └─ Returns response with citations in metadata
    │
    └─ Claude: client.messages.create(model="claude-3-7-sonnet", tools=[web_search])
@@ -412,16 +414,16 @@ Single Query:
   Total: ~1-5 seconds per query
 
 Full Run:
-  ├─ Models: 2 active (OpenAI, Claude)
+  ├─ Models: 4 active (GPT-5, GPT-5-mini, GPT-5-nano, Claude)
   ├─ Queries: 9 configured
-  ├─ Total: 18 queries
+  ├─ Total: 36 queries
   ├─ Sequential execution
-  └─ Expected time: 2-5 minutes
+  └─ Expected time: 4-10 minutes
 
 GitHub Actions:
   ├─ Free tier: 2,000 minutes/month
-  ├─ Weekly run: ~5 minutes
-  ├─ Monthly usage: ~20 minutes
+  ├─ Weekly run: ~10 minutes
+  ├─ Monthly usage: ~40 minutes
   └─ Well within free tier!
 ```
 
@@ -430,12 +432,14 @@ GitHub Actions:
 ```
 GitHub Actions:
   ├─ Cost: FREE (within 2,000 min/month)
-  └─ Usage: ~20 min/month
+  └─ Usage: ~40 min/month
 
 AI Model APIs:
-  ├─ OpenAI: ~$0.01-0.05 per query
+  ├─ GPT-5: $1.25/$10 per 1M input/output tokens
+  ├─ GPT-5-mini: $0.25/$2 per 1M input/output tokens
+  ├─ GPT-5-nano: $0.05/$0.40 per 1M input/output tokens
   ├─ Claude: ~$0.01-0.05 per query
-  └─ Weekly run: ~$0.20-1.00
+  └─ Weekly run: ~$0.50-2.00
 
 Database (Bluehost):
   ├─ Cost: Included in hosting

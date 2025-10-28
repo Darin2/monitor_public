@@ -4,7 +4,7 @@
 
 ## 🎯 Purpose
 
-This monitoring system tracks citation rates across multiple AI models (OpenAI, Claude, DeepSeek, Grok, Perplexity, Llama) to understand:
+This monitoring system tracks citation rates across multiple AI models (GPT-5, GPT-5-mini, GPT-5-nano, Claude, DeepSeek, Grok, Perplexity, Llama) to understand:
 - Which AI platforms find and cite paintballevents.net
 - How citation rates change over time
 - Which query phrasings work best
@@ -38,7 +38,9 @@ aieo-monitor/
 │   └── queries.json      # Test queries
 ├── models/               # AI model implementations
 │   ├── base_model.py     # Abstract base class
-│   ├── openai_model.py   # OpenAI GPT-4o ✓
+│   ├── gpt5_model.py     # OpenAI GPT-5 ✓
+│   ├── gpt5_mini_model.py # OpenAI GPT-5-mini ✓
+│   ├── gpt5_nano_model.py # OpenAI GPT-5-nano ✓
 │   ├── claude_model.py   # Anthropic Claude ✓
 │   ├── deepseek_model.py # DeepSeek (stub)
 │   ├── grok_model.py     # Grok (stub)
@@ -57,7 +59,9 @@ aieo-monitor/
 
 | Model | Status | Provider |
 |-------|--------|----------|
-| GPT-4o | ✅ Active | OpenAI |
+| GPT-5 | ✅ Active | OpenAI |
+| GPT-5-mini | ✅ Active | OpenAI |
+| GPT-5-nano | ✅ Active | OpenAI |
 | Claude 3.7 Sonnet | ✅ Active | Anthropic |
 | DeepSeek Chat | 🚧 Ready (stub) | DeepSeek |
 | Grok 2 | 🚧 Ready (stub) | xAI |
