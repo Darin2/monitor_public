@@ -14,6 +14,11 @@ class DatabaseManager:
     
     def __init__(self):
         """Initialize database connection"""
+        self._connect()
+        self._ensure_schema()
+    
+    def _connect(self):
+        """Establish database connection"""
         self.connection = pymysql.connect(
             host=os.getenv('MYSQL_HOST'),
             user=os.getenv('MYSQL_USER'),
@@ -21,9 +26,19 @@ class DatabaseManager:
             database=os.getenv('MYSQL_DATABASE'),
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor,
-            autocommit=False
+            autocommit=False,
+            connect_timeout=60,
+            read_timeout=60,
+            write_timeout=60
         )
-        self._ensure_schema()
+    
+    def _reconnect_if_needed(self):
+        """Reconnect to database if connection was lost"""
+        try:
+            self.connection.ping(reconnect=True)
+        except Exception:
+            print("⚠️  Reconnecting to MySQL...")
+            self._connect()
     
     def _ensure_schema(self):
         """Ensure all tables exist (basic check)"""
@@ -64,6 +79,7 @@ class DatabaseManager:
     
     def fail_run(self, run_id: str, error: str):
         """Mark a run as failed"""
+        self._reconnect_if_needed()
         with self.connection.cursor() as cursor:
             sql = """
                 UPDATE runs 
@@ -111,6 +127,7 @@ class DatabaseManager:
         error: Optional[str] = None
     ):
         """Store a query response in the database"""
+        self._reconnect_if_needed()
         with self.connection.cursor() as cursor:
             # Convert cited_urls list to JSON
             cited_urls_json = json.dumps(cited_urls)
@@ -153,6 +170,7 @@ class DatabaseManager:
     
     def store_error(self, run_id: str, query_id: str, model_id: str, query_text: str, error: str):
         """Store an error that occurred during a query"""
+        self._reconnect_if_needed()
         with self.connection.cursor() as cursor:
             sql = """
                 INSERT INTO responses 
