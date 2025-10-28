@@ -969,12 +969,18 @@ $db = null; // Close connection
                 label: model,
                 data: dates.map(date => {
                     const entries = timelineData.filter(d => d.date === date && d.model === model);
+                    // Return null if no data exists for this model on this date
+                    // This prevents showing 0 for dates before the model was implemented
+                    if (entries.length === 0) {
+                        return null;
+                    }
                     return entries.reduce((sum, e) => sum + parseInt(e.citations), 0);
                 }),
                 borderColor: color,
                 backgroundColor: color + '40',
                 borderWidth: 2,
-                tension: 0.3
+                tension: 0.3,
+                spanGaps: false  // Don't connect lines across null values
             };
         });
         
