@@ -825,6 +825,20 @@ $db = null; // Close connection
         
         <div class="chart-container" data-title="<?php 
             if ($filterModel && $filterQuery) {
+                echo 'CITATION RATE OVER TIME: ' . strtoupper(htmlspecialchars($filterModel)) . ' + SPECIFIC QUERY';
+            } elseif ($filterModel) {
+                echo 'CITATION RATE OVER TIME: ' . strtoupper(htmlspecialchars($filterModel));
+            } elseif ($filterQuery) {
+                echo 'CITATION RATE OVER TIME: SELECTED QUERY';
+            } else {
+                echo 'CITATION RATE OVER TIME';
+            }
+        ?>">
+            <canvas id="rateTimelineChart"></canvas>
+        </div>
+        
+        <div class="chart-container" data-title="<?php 
+            if ($filterModel && $filterQuery) {
                 echo 'CITATION TIMELINE: ' . strtoupper(htmlspecialchars($filterModel)) . ' + SPECIFIC QUERY';
             } elseif ($filterModel) {
                 echo 'CITATION TIMELINE: ' . strtoupper(htmlspecialchars($filterModel));
@@ -1007,6 +1021,68 @@ $db = null; // Close connection
                     legend: {
                         display: true,
                         position: 'top'
+                    }
+                }
+            }
+        });
+        
+        // Citation Rate Timeline Chart
+        const rateDatasets = models.map((model, index) => {
+            const colors = ['#00ff88', '#00d9ff', '#ff8800', '#ff0055', '#8800ff', '#00ffff'];
+            const color = colors[index % colors.length];
+            
+            return {
+                label: model,
+                data: dates.map(date => {
+                    const entries = timelineData.filter(d => d.date === date && d.model === model);
+                    // Return null if no data exists for this model on this date
+                    if (entries.length === 0) {
+                        return null;
+                    }
+                    // Calculate citation rate: (citations / total_queries) * 100
+                    const totalCitations = entries.reduce((sum, e) => sum + parseInt(e.citations), 0);
+                    const totalQueries = entries.reduce((sum, e) => sum + parseInt(e.total_queries), 0);
+                    return totalQueries > 0 ? (totalCitations / totalQueries * 100).toFixed(1) : 0;
+                }),
+                borderColor: color,
+                backgroundColor: color + '40',
+                borderWidth: 2,
+                tension: 0.3,
+                spanGaps: false
+            };
+        });
+        
+        const rateTimelineCtx = document.getElementById('rateTimelineChart').getContext('2d');
+        new Chart(rateTimelineCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: rateDatasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Citation Rate (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
                     }
                 }
             }
