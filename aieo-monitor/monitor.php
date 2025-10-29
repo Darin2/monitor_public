@@ -834,10 +834,10 @@ $db = null; // Close connection
                 echo 'CITATION RATE OVER TIME';
             }
         ?>">
-            <canvas id="rateTimelineChart"></canvas>
+            <canvas id="rateTimelineChart">        </canvas>
         </div>
         
-        <div class="chart-container" data-title="<?php 
+        <!-- <div class="chart-container" data-title="<?php 
             if ($filterModel && $filterQuery) {
                 echo 'CITATION TIMELINE: ' . strtoupper(htmlspecialchars($filterModel)) . ' + SPECIFIC QUERY';
             } elseif ($filterModel) {
@@ -849,7 +849,7 @@ $db = null; // Close connection
             }
         ?>">
             <canvas id="timelineChart"></canvas>
-        </div>
+        </div> -->
         
         <?php if (!empty($recentData)): ?>
         <div class="chart-container" data-title="RECENT CITATIONS<?php echo ($filterModel || $filterQuery) ? ' (FILTERED)' : ''; ?>">
@@ -970,11 +970,13 @@ $db = null; // Close connection
             }
         });
         
-        // Timeline Chart
+        // Timeline data (used by both charts)
         const timelineData = <?php echo json_encode($timeSeriesData); ?>;
         const dates = [...new Set(timelineData.map(d => d.date))];
         const models = [...new Set(timelineData.map(d => d.model))];
         
+        // Timeline Chart (commented out)
+        /*
         const datasets = models.map((model, index) => {
             const colors = ['#00ff88', '#00d9ff', '#ff8800', '#ff0055', '#8800ff', '#00ffff'];
             const color = colors[index % colors.length];
@@ -1025,6 +1027,7 @@ $db = null; // Close connection
                 }
             }
         });
+        */
         
         // Citation Rate Timeline Chart
         const rateDatasets = models.map((model, index) => {
