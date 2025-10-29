@@ -4,7 +4,7 @@
 
 ## 🎯 Purpose
 
-This monitoring system tracks citation rates across multiple AI models (GPT-5, GPT-5-mini, GPT-5-nano, Claude, DeepSeek, Grok, Perplexity, Llama) to understand:
+This monitoring system tracks citation rates across multiple AI models (GPT-5, Claude 4.5, DeepSeek, Grok, Perplexity, Llama) to understand:
 - Which AI platforms find and cite paintballevents.net
 - How citation rates change over time
 - Which query phrasings work best
@@ -41,7 +41,10 @@ aieo-monitor/
 │   ├── gpt5_model.py     # OpenAI GPT-5 ✓
 │   ├── gpt5_mini_model.py # OpenAI GPT-5-mini ✓
 │   ├── gpt5_nano_model.py # OpenAI GPT-5-nano ✓
-│   ├── claude_model.py   # Anthropic Claude ✓
+│   ├── claude_model.py   # Anthropic Claude 3.7 Sonnet ✓
+│   ├── claude_sonnet_45_model.py # Anthropic Claude Sonnet 4.5 ✓
+│   ├── claude_haiku_45_model.py  # Anthropic Claude Haiku 4.5 ✓
+│   ├── claude_opus_41_model.py   # Anthropic Claude Opus 4.1 ✓
 │   ├── deepseek_model.py # DeepSeek (stub)
 │   ├── grok_model.py     # Grok (stub)
 │   ├── perplexity_model.py # Perplexity (stub)
@@ -63,6 +66,9 @@ aieo-monitor/
 | GPT-5-mini | ✅ Active | OpenAI |
 | GPT-5-nano | ✅ Active | OpenAI |
 | Claude 3.7 Sonnet | ✅ Active | Anthropic |
+| Claude Sonnet 4.5 | ✅ Active | Anthropic |
+| Claude Haiku 4.5 | ✅ Active | Anthropic |
+| Claude Opus 4.1 | ✅ Active | Anthropic |
 | DeepSeek Chat | 🚧 Ready (stub) | DeepSeek |
 | Grok 2 | 🚧 Ready (stub) | xAI |
 | Sonar Pro | 🚧 Ready (stub) | Perplexity |
@@ -182,7 +188,8 @@ python run_monitor.py
 
 - [x] Core infrastructure
 - [x] OpenAI integration
-- [x] Claude integration
+- [x] Claude integration (3.7 Sonnet)
+- [x] Claude 4.5 models (Sonnet 4.5, Haiku 4.5, Opus 4.1)
 - [x] GitHub Actions automation
 - [x] MySQL database
 - [x] PHP dashboard

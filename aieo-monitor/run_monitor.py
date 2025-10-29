@@ -20,6 +20,9 @@ from models.gpt5_model import GPT5Model
 from models.gpt5_mini_model import GPT5MiniModel
 from models.gpt5_nano_model import GPT5NanoModel
 from models.claude_model import ClaudeModel
+from models.claude_sonnet_45_model import ClaudeSonnet45Model
+from models.claude_haiku_45_model import ClaudeHaiku45Model
+from models.claude_opus_41_model import ClaudeOpus41Model
 from models.deepseek_model import DeepSeekModel
 from models.grok_model import GrokModel
 from models.perplexity_model import PerplexityModel
@@ -72,13 +75,31 @@ class MonitorOrchestrator:
             except Exception as e:
                 print(f"✗ GPT-5-nano model failed to initialize: {e}")
         
-        # Anthropic Claude
+        # Anthropic Claude models
         if os.getenv("ANTHROPIC_API_KEY"):
             try:
                 models.append(ClaudeModel(os.getenv("ANTHROPIC_API_KEY")))
-                print("✓ Claude model initialized")
+                print("✓ Claude 3.7 Sonnet model initialized")
             except Exception as e:
-                print(f"✗ Claude model failed to initialize: {e}")
+                print(f"✗ Claude 3.7 Sonnet model failed to initialize: {e}")
+            
+            try:
+                models.append(ClaudeSonnet45Model(os.getenv("ANTHROPIC_API_KEY")))
+                print("✓ Claude Sonnet 4.5 model initialized")
+            except Exception as e:
+                print(f"✗ Claude Sonnet 4.5 model failed to initialize: {e}")
+            
+            try:
+                models.append(ClaudeHaiku45Model(os.getenv("ANTHROPIC_API_KEY")))
+                print("✓ Claude Haiku 4.5 model initialized")
+            except Exception as e:
+                print(f"✗ Claude Haiku 4.5 model failed to initialize: {e}")
+            
+            try:
+                models.append(ClaudeOpus41Model(os.getenv("ANTHROPIC_API_KEY")))
+                print("✓ Claude Opus 4.1 model initialized")
+            except Exception as e:
+                print(f"✗ Claude Opus 4.1 model failed to initialize: {e}")
         
         # DeepSeek (commented out until implemented)
         # if os.getenv("DEEPSEEK_API_KEY"):
