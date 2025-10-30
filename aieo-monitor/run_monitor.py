@@ -77,11 +77,12 @@ class MonitorOrchestrator:
         
         # Anthropic Claude models
         if os.getenv("ANTHROPIC_API_KEY"):
-            try:
-                models.append(ClaudeModel(os.getenv("ANTHROPIC_API_KEY")))
-                print("✓ Claude 3.7 Sonnet model initialized")
-            except Exception as e:
-                print(f"✗ Claude 3.7 Sonnet model failed to initialize: {e}")
+            # Paused - Claude 3.7 Sonnet
+            # try:
+            #     models.append(ClaudeModel(os.getenv("ANTHROPIC_API_KEY")))
+            #     print("✓ Claude 3.7 Sonnet model initialized")
+            # except Exception as e:
+            #     print(f"✗ Claude 3.7 Sonnet model failed to initialize: {e}")
             
             try:
                 models.append(ClaudeSonnet45Model(os.getenv("ANTHROPIC_API_KEY")))
@@ -89,17 +90,19 @@ class MonitorOrchestrator:
             except Exception as e:
                 print(f"✗ Claude Sonnet 4.5 model failed to initialize: {e}")
             
-            try:
-                models.append(ClaudeHaiku45Model(os.getenv("ANTHROPIC_API_KEY")))
-                print("✓ Claude Haiku 4.5 model initialized")
-            except Exception as e:
-                print(f"✗ Claude Haiku 4.5 model failed to initialize: {e}")
+            # Paused - Claude Haiku 4.5
+            # try:
+            #     models.append(ClaudeHaiku45Model(os.getenv("ANTHROPIC_API_KEY")))
+            #     print("✓ Claude Haiku 4.5 model initialized")
+            # except Exception as e:
+            #     print(f"✗ Claude Haiku 4.5 model failed to initialize: {e}")
             
-            try:
-                models.append(ClaudeOpus41Model(os.getenv("ANTHROPIC_API_KEY")))
-                print("✓ Claude Opus 4.1 model initialized")
-            except Exception as e:
-                print(f"✗ Claude Opus 4.1 model failed to initialize: {e}")
+            # Paused - Claude Opus 4.1
+            # try:
+            #     models.append(ClaudeOpus41Model(os.getenv("ANTHROPIC_API_KEY")))
+            #     print("✓ Claude Opus 4.1 model initialized")
+            # except Exception as e:
+            #     print(f"✗ Claude Opus 4.1 model failed to initialize: {e}")
         
         # DeepSeek (commented out until implemented)
         # if os.getenv("DEEPSEEK_API_KEY"):
