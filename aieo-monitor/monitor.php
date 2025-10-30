@@ -204,6 +204,12 @@ $db = null; // Close connection
             overflow-x: hidden;
         }
         
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+        }
+        
         /* CRT Scanline Effect */
         body::before {
             content: '';
@@ -283,11 +289,25 @@ $db = null; // Close connection
             text-transform: uppercase;
         }
         
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5em;
+                letter-spacing: 1px;
+            }
+        }
+        
         .header p {
             font-size: 0.95em;
             opacity: 0.8;
             letter-spacing: 1.5px;
             text-transform: uppercase;
+        }
+        
+        @media (max-width: 768px) {
+            .header p {
+                font-size: 0.8em;
+                letter-spacing: 0.5px;
+            }
         }
         
         .stats-grid {
@@ -347,12 +367,24 @@ $db = null; // Close connection
             z-index: 1;
         }
         
+        @media (max-width: 768px) {
+            .stat-card .value {
+                font-size: 2em;
+            }
+        }
+        
         .stat-card .subtext {
             font-size: 0.85em;
             opacity: 0.6;
             margin-top: 8px;
             position: relative;
             z-index: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-card .subtext {
+                font-size: 0.75em;
+            }
         }
         
         .chart-container {
@@ -362,6 +394,13 @@ $db = null; // Close connection
             margin-bottom: 30px;
             box-shadow: 0 0 15px rgba(0, 217, 255, 0.2), inset 0 0 15px rgba(0, 217, 255, 0.03);
             position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
         }
         
         .chart-container::before {
@@ -377,14 +416,74 @@ $db = null; // Close connection
             text-transform: uppercase;
         }
         
+        @media (max-width: 768px) {
+            .chart-container::before {
+                font-size: 0.7em;
+                letter-spacing: 1px;
+                left: 10px;
+            }
+        }
+        
         .chart-container canvas {
             max-height: 400px;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container canvas {
+                max-height: 300px;
+            }
+        }
+        
+        /* Table wrapper for horizontal scroll on mobile */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -5px;
+            padding: 0 5px;
+            position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .table-wrapper {
+                /* Add shadow indicators for scrollable content */
+                background: 
+                    linear-gradient(90deg, rgba(0, 217, 255, 0.1) 0%, transparent 10px),
+                    linear-gradient(90deg, transparent calc(100% - 10px), rgba(0, 217, 255, 0.1) 100%);
+                background-attachment: local, local;
+                background-repeat: no-repeat;
+                background-size: 10px 100%, 10px 100%;
+                background-position: left, right;
+            }
+            
+            .table-wrapper::after {
+                content: '← Swipe to scroll →';
+                display: block;
+                text-align: center;
+                font-size: 0.7em;
+                opacity: 0.5;
+                margin-top: 8px;
+                letter-spacing: 1px;
+                animation: pulse 2s ease-in-out infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 0.5; }
+                50% { opacity: 0.3; }
+            }
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9em;
+            min-width: 600px;
+        }
+        
+        @media (max-width: 768px) {
+            table {
+                font-size: 0.75em;
+                min-width: 500px;
+            }
         }
         
         thead th {
@@ -396,11 +495,26 @@ $db = null; // Close connection
             text-transform: uppercase;
             letter-spacing: 1.5px;
             font-size: 0.85em;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 768px) {
+            thead th {
+                padding: 10px 8px;
+                font-size: 0.8em;
+                letter-spacing: 0.5px;
+            }
         }
         
         tbody td {
             padding: 12px 15px;
             border-bottom: 1px solid rgba(0, 217, 255, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            tbody td {
+                padding: 8px;
+            }
         }
         
         tbody tr {
@@ -449,10 +563,18 @@ $db = null; // Close connection
             line-height: 1.6;
         }
         
+        @media (max-width: 768px) {
+            .url-list {
+                font-size: 0.7em;
+            }
+        }
+        
         .url-list a {
             color: #00d9ff;
             text-decoration: none;
             transition: all 0.2s;
+            word-break: break-all;
+            display: inline-block;
         }
         
         .url-list a:hover {
@@ -484,9 +606,23 @@ $db = null; // Close connection
             font-size: 0.9em;
         }
         
+        @media (max-width: 768px) {
+            .run-info {
+                padding: 10px;
+                font-size: 0.75em;
+                line-height: 1.8;
+            }
+        }
+        
         .run-info .run-label {
             opacity: 0.7;
             margin-right: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .run-info .run-label {
+                margin-right: 5px;
+            }
         }
         
         .filter-container {
@@ -496,6 +632,13 @@ $db = null; // Close connection
             margin-bottom: 30px;
             box-shadow: 0 0 15px rgba(0, 217, 255, 0.2), inset 0 0 15px rgba(0, 217, 255, 0.03);
             position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .filter-container {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
         }
         
         .filter-container::before {
@@ -547,6 +690,16 @@ $db = null; // Close connection
             transition: all 0.2s;
         }
         
+        @media (max-width: 768px) {
+            .filter-group select {
+                padding: 12px 10px;
+                font-size: 0.85em;
+                /* Larger touch target on mobile */
+                min-height: 44px;
+                width: 100%;
+            }
+        }
+        
         .filter-group select:hover,
         .filter-group select:focus {
             background: rgba(0, 217, 255, 0.1);
@@ -572,6 +725,17 @@ $db = null; // Close connection
             transition: all 0.2s;
             text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
             font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .filter-btn {
+                padding: 12px 16px;
+                font-size: 0.8em;
+                letter-spacing: 1px;
+                width: 100%;
+                /* Larger touch target on mobile */
+                min-height: 44px;
+            }
         }
         
         .filter-btn:hover {
@@ -609,6 +773,15 @@ $db = null; // Close connection
             margin-top: 5px;
             border-radius: 3px;
             font-size: 0.85em;
+            word-break: break-word;
+        }
+        
+        @media (max-width: 768px) {
+            .active-filters .filter-tag {
+                font-size: 0.75em;
+                padding: 4px 8px;
+                margin-right: 5px;
+            }
         }
         
         .clickable-cell {
@@ -748,78 +921,82 @@ $db = null; // Close connection
         </div>
         
         <div class="chart-container" data-title="<?php echo $filterQuery ? 'MODEL PERFORMANCE FOR SELECTED QUERY' : 'MODEL PERFORMANCE TABLE'; ?>">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Model</th>
-                        <th>Provider</th>
-                        <th>Times Tested</th>
-                        <th>Times Cited</th>
-                        <th>Citation Rate</th>
-                        <th>Avg Response Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($modelData as $model): ?>
-                    <tr>
-                        <td>
-                            <strong class="clickable-cell" onclick="filterByModel('<?php echo htmlspecialchars($model['model'], ENT_QUOTES); ?>')">
-                                <?php echo htmlspecialchars($model['model']); ?>
-                            </strong>
-                        </td>
-                        <td><?php echo htmlspecialchars($model['provider']); ?></td>
-                        <td><?php echo $model['times_tested']; ?></td>
-                        <td><?php echo $model['times_cited']; ?></td>
-                        <td>
-                            <span class="badge <?php echo $model['citation_rate'] > 0 ? 'success' : 'warning'; ?>">
-                                <?php echo $model['citation_rate']; ?>%
-                            </span>
-                        </td>
-                        <td>
-                            <?php 
-                            if ($model['avg_response_time']) {
-                                echo number_format($model['avg_response_time']) . ' ms';
-                            } else {
-                                echo '-';
-                            }
-                            ?>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Provider</th>
+                            <th>Times Tested</th>
+                            <th>Times Cited</th>
+                            <th>Citation Rate</th>
+                            <th>Avg Response Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($modelData as $model): ?>
+                        <tr>
+                            <td>
+                                <strong class="clickable-cell" onclick="filterByModel('<?php echo htmlspecialchars($model['model'], ENT_QUOTES); ?>')">
+                                    <?php echo htmlspecialchars($model['model']); ?>
+                                </strong>
+                            </td>
+                            <td><?php echo htmlspecialchars($model['provider']); ?></td>
+                            <td><?php echo $model['times_tested']; ?></td>
+                            <td><?php echo $model['times_cited']; ?></td>
+                            <td>
+                                <span class="badge <?php echo $model['citation_rate'] > 0 ? 'success' : 'warning'; ?>">
+                                    <?php echo $model['citation_rate']; ?>%
+                                </span>
+                            </td>
+                            <td>
+                                <?php 
+                                if ($model['avg_response_time']) {
+                                    echo number_format($model['avg_response_time']) . ' ms';
+                                } else {
+                                    echo '-';
+                                }
+                                ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
         
         <?php if ($filterModel && !$filterQuery && !empty($queryStats)): ?>
         <div class="chart-container" data-title="QUERIES TESTED WITH <?php echo strtoupper(htmlspecialchars($filterModel)); ?>">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Query</th>
-                        <th>Times Tested</th>
-                        <th>Times Cited</th>
-                        <th>Citation Rate</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($queryStats as $stat): ?>
-                    <tr>
-                        <td>
-                            <span class="clickable-cell" onclick="filterByQuery('<?php echo htmlspecialchars($stat['query_text'], ENT_QUOTES); ?>')">
-                                <?php echo htmlspecialchars($stat['query_text']); ?>
-                            </span>
-                        </td>
-                        <td><?php echo $stat['times_tested']; ?></td>
-                        <td><?php echo $stat['times_cited']; ?></td>
-                        <td>
-                            <span class="badge <?php echo $stat['citation_rate'] > 0 ? 'success' : 'warning'; ?>">
-                                <?php echo $stat['citation_rate']; ?>%
-                            </span>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Query</th>
+                            <th>Times Tested</th>
+                            <th>Times Cited</th>
+                            <th>Citation Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($queryStats as $stat): ?>
+                        <tr>
+                            <td>
+                                <span class="clickable-cell" onclick="filterByQuery('<?php echo htmlspecialchars($stat['query_text'], ENT_QUOTES); ?>')">
+                                    <?php echo htmlspecialchars($stat['query_text']); ?>
+                                </span>
+                            </td>
+                            <td><?php echo $stat['times_tested']; ?></td>
+                            <td><?php echo $stat['times_cited']; ?></td>
+                            <td>
+                                <span class="badge <?php echo $stat['citation_rate'] > 0 ? 'success' : 'warning'; ?>">
+                                    <?php echo $stat['citation_rate']; ?>%
+                                </span>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <?php endif; ?>
         
@@ -853,43 +1030,45 @@ $db = null; // Close connection
         
         <?php if (!empty($recentData)): ?>
         <div class="chart-container" data-title="RECENT CITATIONS<?php echo ($filterModel || $filterQuery) ? ' (FILTERED)' : ''; ?>">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>Model</th>
-                        <th>Query</th>
-                        <th>Cited URLs</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($recentData as $citation): ?>
-                    <tr>
-                        <td class="timestamp"><?php echo date('Y-m-d H:i:s', strtotime($citation['timestamp'])); ?></td>
-                        <td>
-                            <span class="clickable-cell" onclick="filterByModel('<?php echo htmlspecialchars($citation['model'], ENT_QUOTES); ?>')">
-                                <?php echo htmlspecialchars($citation['model']); ?>
-                            </span>
-                        </td>
-                        <td>
-                            <span class="clickable-cell" onclick="filterByQuery('<?php echo htmlspecialchars($citation['query'], ENT_QUOTES); ?>')" title="<?php echo htmlspecialchars($citation['query']); ?>">
-                                <?php echo htmlspecialchars(substr($citation['query'], 0, 60)) . (strlen($citation['query']) > 60 ? '...' : ''); ?>
-                            </span>
-                        </td>
-                        <td class="url-list">
-                            <?php 
-                            $urls = json_decode($citation['cited_urls'], true);
-                            if ($urls && is_array($urls)) {
-                                foreach ($urls as $url) {
-                                    echo '<a href="' . htmlspecialchars($url) . '" target="_blank">' . htmlspecialchars($url) . '</a><br>';
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Model</th>
+                            <th>Query</th>
+                            <th>Cited URLs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($recentData as $citation): ?>
+                        <tr>
+                            <td class="timestamp"><?php echo date('Y-m-d H:i:s', strtotime($citation['timestamp'])); ?></td>
+                            <td>
+                                <span class="clickable-cell" onclick="filterByModel('<?php echo htmlspecialchars($citation['model'], ENT_QUOTES); ?>')">
+                                    <?php echo htmlspecialchars($citation['model']); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="clickable-cell" onclick="filterByQuery('<?php echo htmlspecialchars($citation['query'], ENT_QUOTES); ?>')" title="<?php echo htmlspecialchars($citation['query']); ?>">
+                                    <?php echo htmlspecialchars(substr($citation['query'], 0, 60)) . (strlen($citation['query']) > 60 ? '...' : ''); ?>
+                                </span>
+                            </td>
+                            <td class="url-list">
+                                <?php 
+                                $urls = json_decode($citation['cited_urls'], true);
+                                if ($urls && is_array($urls)) {
+                                    foreach ($urls as $url) {
+                                        echo '<a href="' . htmlspecialchars($url) . '" target="_blank">' . htmlspecialchars($url) . '</a><br>';
+                                    }
                                 }
-                            }
-                            ?>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                                ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <?php endif; ?>
     </div>
@@ -913,6 +1092,9 @@ $db = null; // Close connection
         // Chart.js styling
         Chart.defaults.color = '#00d9ff';
         Chart.defaults.borderColor = 'rgba(0, 217, 255, 0.2)';
+        
+        // Detect mobile device
+        const isMobile = window.innerWidth <= 768;
         
         // Model Performance Chart
         const modelCtx = document.getElementById('modelChart').getContext('2d');
@@ -940,21 +1122,47 @@ $db = null; // Close connection
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: !isMobile,
+                aspectRatio: isMobile ? 1 : 2,
                 scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: isMobile ? 90 : 45,
+                            minRotation: isMobile ? 90 : 0,
+                            font: {
+                                size: isMobile ? 8 : 11
+                            }
+                        }
+                    },
                     y: {
                         beginAtZero: true,
                         title: {
-                            display: true,
-                            text: 'Citation Rate (%)'
+                            display: !isMobile,
+                            text: 'Citation Rate (%)',
+                            font: {
+                                size: isMobile ? 10 : 12
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: isMobile ? 9 : 11
+                            }
                         }
                     },
                     y1: {
                         beginAtZero: true,
                         position: 'right',
                         title: {
-                            display: true,
-                            text: 'Times Tested'
+                            display: !isMobile,
+                            text: 'Times Tested',
+                            font: {
+                                size: isMobile ? 10 : 12
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: isMobile ? 9 : 11
+                            }
                         },
                         grid: {
                             drawOnChartArea: false
@@ -964,7 +1172,13 @@ $db = null; // Close connection
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top'
+                        position: isMobile ? 'bottom' : 'top',
+                        labels: {
+                            font: {
+                                size: isMobile ? 9 : 11
+                            },
+                            padding: isMobile ? 8 : 10
+                        }
                     }
                 }
             }
@@ -1064,27 +1278,64 @@ $db = null; // Close connection
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: !isMobile,
+                aspectRatio: isMobile ? 1 : 2.5,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
                 scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: isMobile ? 90 : 45,
+                            minRotation: isMobile ? 45 : 0,
+                            font: {
+                                size: isMobile ? 8 : 10
+                            },
+                            autoSkip: true,
+                            maxTicksLimit: isMobile ? 8 : 15
+                        }
+                    },
                     y: {
                         beginAtZero: true,
                         max: 100,
                         title: {
-                            display: true,
-                            text: 'Citation Rate (%)'
+                            display: !isMobile,
+                            text: 'Citation Rate (%)',
+                            font: {
+                                size: isMobile ? 10 : 12
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: isMobile ? 9 : 11
+                            }
                         }
                     }
                 },
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top'
+                        position: isMobile ? 'bottom' : 'top',
+                        labels: {
+                            font: {
+                                size: isMobile ? 8 : 11
+                            },
+                            padding: isMobile ? 6 : 10,
+                            boxWidth: isMobile ? 12 : 15
+                        }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
                                 return context.dataset.label + ': ' + context.parsed.y + '%';
                             }
+                        },
+                        titleFont: {
+                            size: isMobile ? 10 : 12
+                        },
+                        bodyFont: {
+                            size: isMobile ? 9 : 11
                         }
                     }
                 }
