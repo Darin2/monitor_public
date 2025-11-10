@@ -1,12 +1,12 @@
-# AI Search Citation & Recommendation Monitor
+# AI Search Citation Monitor
 
 ## Project Goal
 
 Monitor the visibility of **paintballevents.net** across major AI search platforms by tracking:
-1. **Citations** - URLs that AI platforms search/reference in their web search process
-2. **Recommendations** - Whether paintballevents.net is actually mentioned/recommended to users in the AI response text
+1. **Citations** - URLs that AI platforms search/reference in their web search process (✅ Currently implemented)
+2. **Recommendations** - Whether paintballevents.net is actually mentioned/recommended to users in the AI response text (🚧 Planned)
 
-This helps understand both when the site is being found by AI search AND when it's being presented to end users.
+Currently tracking citations to understand when the site is being found by AI search. Recommendation tracking is planned for future implementation.
 
 ## Architecture
 
@@ -35,7 +35,7 @@ The monitoring system consists of three components:
 
 ## Target Platforms
 
-Tracking citations and recommendations across all major AI platforms:
+Tracking citations across all major AI platforms (recommendation tracking planned):
 
 1. **ChatGPT** (OpenAI) - ✅ Implemented (GPT-5, GPT-5-mini, GPT-5-nano)
 2. **Claude** (Anthropic) - ✅ Implemented (Sonnet 4.5)
@@ -51,8 +51,8 @@ For each query across each platform:
 - **Timestamp** - When the query was made
 - **Search query used** - The actual search query the AI used
 - **Cited URLs** - All websites referenced/searched during the AI's web search
-- **PaintballEvents.net cited** - Boolean: Was the site found in the search citations?
-- **PaintballEvents.net recommended** - Boolean: Was the site mentioned/recommended in the response to the user?
+- **PaintballEvents.net cited** - Boolean: Was the site found in the search citations? (✅ Currently tracked)
+- **PaintballEvents.net recommended** - Boolean: Was the site mentioned/recommended in the response to the user? (🚧 Planned)
 - **Response text** - Full AI response for analysis
 
 ## Current Status
@@ -71,20 +71,19 @@ For each query across each platform:
 
 ### 📋 Planned
 - **Additional models** - DeepSeek, Grok, Llama (stubs ready)
-- **Email alerts** - Notify when citation rate changes
-- **Competitor tracking** - Track which competitors are cited
-- **Query A/B testing** - Optimize query phrasing
-- **REST API** - Programmatic access to data
+- **Recommendation tracking** - Track when paintballevents.net is mentioned/recommended in AI response text (currently only citations are tracked)
+- **Evaluation of system accuracy** - Validate citation detection and measurement accuracy
+- **Dashboard UX enhancements** - Improve user experience and data visualization
 
 ## Why This Matters
 
 AI search is rapidly becoming how users discover events and information. Understanding:
-- **Which platforms cite paintballevents.net** (finding it via search)
-- **Which platforms recommend paintballevents.net** (presenting it to users)
-- **What query types work best** for both citation and recommendation
+- **Which platforms cite paintballevents.net** (finding it via search) - ✅ Currently tracked
+- **Which platforms recommend paintballevents.net** (presenting it to users) - 🚧 Planned
+- **What query types work best** for citation
 - **How patterns change over time** across different AI platforms
 
-...is critical for SEO and discoverability strategy in the AI era. There's a key difference between being **found** by AI search (citation) vs being **recommended** to users (appearing in the response).
+...is critical for SEO and discoverability strategy in the AI era. There's a key difference between being **found** by AI search (citation) vs being **recommended** to users (appearing in the response). Currently, the system tracks citations; recommendation tracking is planned for future implementation.
 
 ## Current Test Queries
 

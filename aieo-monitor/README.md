@@ -323,10 +323,9 @@ python run_monitor.py
 - [ ] DeepSeek integration
 - [ ] Grok integration
 - [ ] Llama integration
-- [ ] Email alerts
-- [ ] Competitor tracking
-- [ ] Query A/B testing
-- [ ] REST API
+- [ ] Recommendation tracking (currently only citations are tracked)
+- [ ] Evaluation of system accuracy
+- [ ] Dashboard UX enhancements
 
 ## 📄 License
 
