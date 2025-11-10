@@ -201,16 +201,12 @@ If you're considering implementing a similar AI citation monitoring system, here
 
 ### Cost Considerations
 
-**Monthly costs (approximate):**
-- GitHub Actions: **FREE** (within 2,000 min/month limit)
-- Database hosting: **Included** in most shared hosting plans
-- Dashboard hosting: **Included** in shared hosting
-- API calls: **$1-4/month** (depends on number of queries/models)
-
 **Cost factors:**
-- Number of queries × Number of models × Frequency = Total API calls
-- Example: 9 queries × 5 models × 30 days = 1,350 API calls/month
-- Most AI APIs charge per token, so longer responses cost more
+- **GitHub Actions**: Free (within 2,000 min/month limit)
+- **Database/Dashboard hosting**: Usually included in shared hosting plans
+- **API costs**: Different AI models have different pricing structures
+- **Costs scale linearly**: More queries × More models × More frequent runs = Higher costs
+- Most AI APIs charge per token, so longer responses cost more than shorter ones
 
 ### Setup Complexity
 
