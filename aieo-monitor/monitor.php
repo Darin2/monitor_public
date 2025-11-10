@@ -1245,7 +1245,20 @@ $db = null; // Close connection
         
         // Citation Rate Timeline Chart
         const rateDatasets = models.map((model, index) => {
-            const colors = ['#00ff88', '#00d9ff', '#ff8800', '#ff0055', '#8800ff', '#00ffff'];
+            const colors = [
+                '#00ff88',  // Green
+                '#ff00ff',  // Bright Pink/Magenta
+                '#ffff00',  // Yellow
+                '#ffffff',  // White
+                '#ff8800',  // Orange
+                '#00d9ff',  // Cyan
+                '#ff0055',  // Red/Magenta
+                '#8800ff',  // Purple
+                '#ffd700',  // Gold
+                '#00ffff',  // Aqua
+                '#ff1493',  // Deep Pink
+                '#87ceeb'   // Light Blue
+            ];
             const color = colors[index % colors.length];
             
             return {
