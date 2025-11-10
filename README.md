@@ -10,10 +10,26 @@ This helps understand both when the site is being found by AI search AND when it
 
 ## Architecture
 
-**GitHub Actions** (Weekly Cron) → **MySQL on Bluehost** → **PHP Dashboard**
+The monitoring system consists of three components:
+
+1. **GitHub Actions Pipeline** (runs daily)
+   - Executes Python script (`run_monitor.py`) on GitHub's servers
+   - Queries AI models (OpenAI, Claude, Perplexity)
+   - Writes results directly to MySQL database on Bluehost
+
+2. **MySQL Database** (on Bluehost server)
+   - Stores all query responses, citations, and metadata
+   - Receives data from GitHub Actions pipeline daily
+
+3. **PHP Dashboard** (`monitor.php` on Bluehost server)
+   - Simple PHP script that reads from MySQL database
+   - Displays charts, statistics, and recent citations
+   - No backend processing - just reads and displays data
+
+**Data Flow:** GitHub Actions → MySQL Database → PHP Dashboard
 
 - ✅ No Python hosting needed - runs for free on GitHub
-- ✅ Works perfectly with Bluehost shared hosting
+- ✅ Works perfectly with Bluehost shared hosting (PHP + MySQL)
 - ✅ Scalable to multiple AI models
 - ✅ Clean separation of concerns
 
@@ -21,11 +37,11 @@ This helps understand both when the site is being found by AI search AND when it
 
 Tracking citations and recommendations across all major AI platforms:
 
-1. **ChatGPT** (OpenAI) - ✅ Implemented
-2. **Claude** (Anthropic) - ✅ Implemented
-3. **DeepSeek** - 🚧 Ready (awaiting API key)
-4. **Grok** (xAI) - 🚧 Ready (awaiting API key)
-5. **Perplexity** - 🚧 Ready (awaiting API key)
+1. **ChatGPT** (OpenAI) - ✅ Implemented (GPT-5, GPT-5-mini, GPT-5-nano)
+2. **Claude** (Anthropic) - ✅ Implemented (Sonnet 4.5)
+3. **Perplexity** - ✅ Implemented (Sonar Pro)
+4. **DeepSeek** - 🚧 Ready (awaiting API key)
+5. **Grok** (xAI) - 🚧 Ready (awaiting API key)
 6. **Llama** (Meta) - 🚧 Ready (awaiting API key)
 
 ## What We're Tracking
@@ -42,7 +58,9 @@ For each query across each platform:
 ## Current Status
 
 ### ✅ Implemented (v2.0)
-- **OpenAI & Claude integration** - Both working with web search
+- **OpenAI integration** - GPT-5, GPT-5-mini, GPT-5-nano with web search
+- **Claude integration** - Sonnet 4.5 with web search
+- **Perplexity integration** - Sonar Pro model with real-time search
 - **MySQL database** - Hosted on Bluehost with proper schema
 - **GitHub Actions automation** - Runs weekly, no server needed
 - **Citation extraction** - Captures actual URLs searched
@@ -52,7 +70,7 @@ For each query across each platform:
 - **Run tracking** - Groups queries and tracks execution
 
 ### 📋 Planned
-- **Additional models** - DeepSeek, Grok, Perplexity, Llama (stubs ready)
+- **Additional models** - DeepSeek, Grok, Llama (stubs ready)
 - **Email alerts** - Notify when citation rate changes
 - **Competitor tracking** - Track which competitors are cited
 - **Query A/B testing** - Optimize query phrasing
@@ -85,8 +103,8 @@ See [aieo-monitor/SETUP.md](aieo-monitor/SETUP.md) for detailed setup instructio
 1. Create MySQL database on Bluehost
 2. Run `aieo-monitor/database/schema.sql`
 3. Add secrets to GitHub repository
-4. Upload `aieo-monitor/monitor.php` to Bluehost
-5. Done! Runs automatically every Monday.
+4. Upload `aieo-monitor/monitor.php` to Bluehost (one-time setup)
+5. Done! GitHub Actions runs daily and populates the database, PHP dashboard reads and displays the data.
 
 ### Local Development
 
@@ -115,8 +133,8 @@ monitor/
 │   ├── config/                # Query configurations
 │   ├── models/                # AI model implementations
 │   ├── database/              # Database schema and operations
-│   ├── run_monitor.py         # Main orchestrator
-│   ├── monitor.php            # Web dashboard
+│   ├── run_monitor.py         # Main orchestrator (runs on GitHub Actions)
+│   ├── monitor.php            # PHP dashboard (runs on Bluehost)
 │   ├── SETUP.md              # Detailed setup guide
 │   └── README.md             # Module documentation
 ├── aieo-optimization/         # SEO optimization tools
@@ -126,11 +144,11 @@ monitor/
 ## Environment Setup
 
 API keys required (add to GitHub Secrets):
-- `OPENAI_API_KEY` - For OpenAI GPT-4o
-- `ANTHROPIC_API_KEY` - For Claude
+- `OPENAI_API_KEY` - For OpenAI GPT-5 models
+- `ANTHROPIC_API_KEY` - For Claude models
+- `PERPLEXITY_API_KEY` - For Perplexity Sonar Pro
 - `DEEPSEEK_API_KEY` - For DeepSeek (optional)
 - `GROK_API_KEY` - For Grok (optional)
-- `PERPLEXITY_API_KEY` - For Perplexity (optional)
 - `LLAMA_API_KEY` - For Llama (optional)
 
 MySQL credentials (add to GitHub Secrets):
@@ -141,14 +159,17 @@ MySQL credentials (add to GitHub Secrets):
 
 ## Dashboard
 
-View live results at: **https://darin.tech/monitor.php** (after setup)
+View live results at: **https://darin.tech/monitor.php**
 
-Features:
+The dashboard is a simple PHP script (`monitor.php`) that runs on the Bluehost server. It reads directly from the MySQL database and displays:
+
 - 📈 Citation rate trends over time
 - 📊 Model performance comparison
 - 📋 Detailed statistics per model
 - 🔍 Recent citation events with URLs
 - 🎯 Run status and error tracking
+
+No backend processing required - it's just a read-only view of the database data.
 
 ## Results
 
@@ -158,6 +179,9 @@ Check the dashboard for the latest results. Tracking:
 - Best performing queries
 - Competitor URLs being cited
 - Trends over time
+
+**Current baseline (before optimization):**
+- Citation rate: ~53% across all 9 queries
 
 ---
 
