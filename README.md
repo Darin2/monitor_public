@@ -113,16 +113,25 @@ cd aieo-monitor
 # Install dependencies
 pip install -r requirements.txt
 
-# Setup environment
-cp .env.example .env
-# Edit .env with your API keys and database credentials
-
-# Test database connection
-python test_connection.py
+# Setup environment (create .env file manually)
+# Copy the template from .env.example or create .env with:
+# OPENAI_API_KEY=your_key_here
+# ANTHROPIC_API_KEY=your_key_here
+# PERPLEXITY_API_KEY=your_key_here
+# MYSQL_HOST=your_host
+# MYSQL_DATABASE=your_database
+# MYSQL_USER=your_user
+# MYSQL_PASSWORD=your_password
 
 # Run monitor locally
 python run_monitor.py
 ```
+
+⚠️ **SECURITY WARNING:** 
+- **NEVER commit your `.env` file to GitHub** - it contains sensitive API keys and database passwords
+- The `.env` file is gitignored, but always double-check before committing
+- If you accidentally commit API keys, **immediately revoke them** and create new ones
+- For GitHub Actions, use GitHub Secrets (see Environment Setup section below)
 
 ## Project Structure
 
@@ -235,6 +244,28 @@ If you're considering implementing a similar AI citation monitoring system, here
 
 See [aieo-monitor/SETUP.md](aieo-monitor/SETUP.md) for detailed step-by-step instructions.
 
+### ⚙️ Customization Required
+
+**Important:** This codebase is configured for `paintballevents.net`. Before using it, you must customize:
+
+1. **Domain Name** - Update the target domain in `aieo-monitor/run_monitor.py`:
+   - Find `_check_reference()` method (around line 251)
+   - Replace `'paintballevents.net'` with your domain
+
+2. **Test Queries** - Edit `aieo-monitor/config/queries.json`:
+   - Replace queries with ones relevant to your domain/topic
+   - Keep the JSON structure intact
+
+3. **Dashboard** (if using `monitor.php`):
+   - Search for `paintballevents.net` and replace with your domain
+   - Update any display text as needed
+
+4. **Database** - Use your own MySQL database:
+   - Create database and run `aieo-monitor/database/schema.sql`
+   - Add credentials to GitHub Secrets
+
+5. **API Keys** - Add your own API keys to GitHub Secrets (see Environment Setup below)
+
 ### 💡 Pro Tip: Using Cursor AI
 
 This entire monitoring system was built with significant help from **Cursor** (an AI-powered code editor). If you're implementing a similar system, Cursor can be extremely helpful for:
@@ -249,6 +280,8 @@ This entire monitoring system was built with significant help from **Cursor** (a
 Cursor's AI assistance makes it much easier to adapt this system to your specific needs, even if you're not deeply familiar with Python or PHP.
 
 ## Environment Setup
+
+⚠️ **SECURITY:** Never commit API keys or database passwords to GitHub. Use GitHub Secrets for production and `.env` files (gitignored) for local development.
 
 API keys required (add to GitHub Secrets):
 - `OPENAI_API_KEY` - For OpenAI GPT-5 models

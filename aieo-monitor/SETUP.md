@@ -1,129 +1,56 @@
-# AI Citation Monitor - Setup Guide
+# Setup Guide - AI Citation Monitor
 
-## Overview
+This guide will help you set up the AI Citation Monitor for your own website/domain.
 
-This monitoring system tracks whether AI models cite paintballevents.net when answering paintball-related queries. The system runs weekly via GitHub Actions and stores results in a MySQL database on Bluehost.
+## Prerequisites
 
-**Architecture:**
-- **Runner**: GitHub Actions (runs Python weekly)
-- **Database**: MySQL on Bluehost (darin.tech)
-- **Dashboard**: PHP on Bluehost
+⚠️ **Security Note:** This project uses API keys and database credentials. **Never commit these to GitHub.** Use `.env` files locally (already gitignored) and GitHub Secrets for production.
 
----
+Before you begin, make sure you have:
 
-## 🚀 Quick Start
+- ✅ A GitHub account (for free GitHub Actions)
+- ✅ A MySQL database (shared hosting like Bluehost works fine)
+- ✅ A web server with PHP support (for the dashboard)
+- ✅ API keys for the AI models you want to monitor:
+  - OpenAI (for GPT-5 models)
+  - Anthropic (for Claude models)
+  - Perplexity (for Sonar Pro)
+  - Optional: DeepSeek, Grok, Llama
 
-### Step 1: Bluehost Database Setup
+## Step 1: Fork and Clone the Repository
 
-1. **Create MySQL Database via cPanel**
-   - Log into Bluehost cPanel
-   - Go to "MySQL Databases"
-   - Create a new database: `darintec_monitor` (or similar)
-   - Create a new MySQL user with a strong password
-   - Add user to database with ALL PRIVILEGES
+1. Fork this repository to your GitHub account
+2. Clone your fork locally:
+```bash
+git clone https://github.com/YOUR_USERNAME/monitor_public.git
+cd monitor_public/aieo-monitor
+```
 
-2. **Enable Remote MySQL Access**
-   - In cPanel, go to "Remote MySQL"
-   - Add access host: `%` (allows GitHub Actions to connect)
-   - **Security Note**: For production, you can whitelist GitHub's IP ranges instead
+## Step 2: Customize for Your Domain
 
-3. **Run Database Schema**
-   - In cPanel, go to "phpMyAdmin"
-   - Select your database
-   - Go to "Import" tab
-   - Upload and run `database/schema.sql`
-   - Verify tables were created: `queries`, `models`, `runs`, `responses`
+### 2.1 Update Target Domain
 
-4. **Note Your Database Credentials**
-   ```
-   Host: yourdomain.com (or IP address)
-   Database: darintec_monitor
-   Username: darintec_monitor
-   Password: your_secure_password
-   ```
+The code currently checks for `paintballevents.net`. You need to customize this for your domain.
 
-### Step 2: GitHub Repository Setup
+**File: `run_monitor.py`**
+- Find the `_check_reference()` method (around line 251)
+- Replace `'paintballevents.net'` with your domain name (e.g., `'yourdomain.com'`)
 
-1. **Add Repository Secrets**
-   - Go to your GitHub repository
-   - Navigate to Settings → Secrets and variables → Actions
-   - Click "New repository secret"
-   - Add the following secrets:
+**File: `monitor.php`** (if you're using the PHP dashboard)
+- Search for `paintballevents.net` and replace with your domain
+- Update any display text that references the specific domain
 
-   **AI Model API Keys:**
-   ```
-   OPENAI_API_KEY=sk-...
-   ANTHROPIC_API_KEY=sk-ant-...
-   DEEPSEEK_API_KEY=...       (optional, for future)
-   GROK_API_KEY=...            (optional, for future)
-   PERPLEXITY_API_KEY=...      (optional, for future)
-   LLAMA_API_KEY=...           (optional, for future)
-   ```
+### 2.2 Customize Test Queries
 
-   **MySQL Connection:**
-   ```
-   MYSQL_HOST=yourdomain.com
-   MYSQL_DATABASE=darintec_monitor
-   MYSQL_USER=darintec_monitor
-   MYSQL_PASSWORD=your_secure_password
-   ```
-
-2. **Commit and Push**
-   ```bash
-   git add .
-   git commit -m "Add AI Citation Monitor infrastructure"
-   git push origin main
-   ```
-
-### Step 3: Test the Workflow
-
-1. **Manual Trigger**
-   - Go to GitHub → Actions tab
-   - Select "AI Citation Monitor" workflow
-   - Click "Run workflow"
-   - Watch the logs to ensure it completes successfully
-
-2. **Verify Results**
-   - Check Bluehost phpMyAdmin
-   - Query the `responses` table
-   - Should see new entries with latest timestamp
-
-### Step 4: Deploy Dashboard to Bluehost
-
-1. **Upload Dashboard File**
-   - Via FTP or cPanel File Manager
-   - Upload `monitor.php` to your public_html directory
-   - Rename to `monitor.php` (or any name you prefer)
-
-2. **Configure Database Connection**
-   - Edit the file on the server (lines 10-13)
-   - Or set environment variables in `.htaccess`:
-   ```apache
-   SetEnv MYSQL_HOST "localhost"
-   SetEnv MYSQL_DATABASE "darintec_monitor"
-   SetEnv MYSQL_USER "darintec_monitor"
-   SetEnv MYSQL_PASSWORD "your_password"
-   ```
-
-3. **Access Dashboard**
-   - Visit: `https://darin.tech/monitor.php`
-   - Should see the terminal-style dashboard with data
-
----
-
-## 📋 Configuration
-
-### Editing Queries
-
-Edit `config/queries.json` to add/modify test queries:
+Edit `config/queries.json` to include queries relevant to your domain:
 
 ```json
 {
   "queries": [
     {
       "id": "q1",
-      "text": "Your query here",
-      "category": "category_name",
+      "text": "Find [your topic] events in [your location]",
+      "category": "general",
       "priority": 1,
       "active": true
     }
@@ -131,222 +58,213 @@ Edit `config/queries.json` to add/modify test queries:
 }
 ```
 
-**Fields:**
-- `id`: Unique identifier (required)
-- `text`: The actual query to test (required)
-- `category`: Group related queries (optional)
-- `priority`: 1=high, 2=medium, 3=low (optional)
-- `active`: Set to false to temporarily disable (optional)
+## Step 3: Set Up MySQL Database
 
-### Changing Schedule
+### 3.1 Create Database
 
-Edit `.github/workflows/monitor.yml`:
+1. Log into your hosting control panel (cPanel, phpMyAdmin, etc.)
+2. Create a new MySQL database
+3. Create a MySQL user and grant it full privileges to the database
+4. Note down:
+   - Database host (usually `localhost` or an IP address)
+   - Database name
+   - Database username
+   - Database password
 
+### 3.2 Run Schema
+
+1. Open your database management tool (phpMyAdmin, MySQL Workbench, etc.)
+2. Select your database
+3. Run the SQL from `database/schema.sql`
+4. Verify tables were created: `queries`, `models`, `runs`, `responses`
+
+### 3.3 Enable Remote MySQL Access (for GitHub Actions)
+
+If your database is on shared hosting (like Bluehost):
+
+1. In cPanel, go to "Remote MySQL" or "MySQL Remote Access"
+2. Add `%` to allowed hosts (or specific GitHub Actions IP ranges)
+3. This allows GitHub Actions to connect to your database
+
+**Security Note:** Use a strong password (20+ characters) and consider restricting to specific IPs if possible.
+
+## Step 4: Configure GitHub Actions
+
+⚠️ **IMPORTANT:** For GitHub Actions, **DO NOT** put API keys in your code or `.env` file. Use GitHub Secrets instead (see below).
+
+### 4.1 Add Repository Secrets
+
+In your GitHub repository, go to:
+**Settings → Secrets and variables → Actions → New repository secret**
+
+Add these secrets:
+
+**AI Model API Keys:**
+- `OPENAI_API_KEY` - Your OpenAI API key
+- `ANTHROPIC_API_KEY` - Your Anthropic API key
+- `PERPLEXITY_API_KEY` - Your Perplexity API key
+- (Optional) `DEEPSEEK_API_KEY`, `GROK_API_KEY`, `LLAMA_API_KEY`
+
+**Database Credentials:**
+- `MYSQL_HOST` - Your MySQL host (e.g., `mysql.yourhost.com` or IP)
+- `MYSQL_DATABASE` - Your database name
+- `MYSQL_USER` - Your MySQL username
+- `MYSQL_PASSWORD` - Your MySQL password
+
+### 4.2 Verify GitHub Actions Workflow
+
+The workflow file should already exist at `.github/workflows/monitor.yml`. It's configured to:
+- Run weekly on Mondays at 9 AM UTC
+- Allow manual triggers via GitHub Actions UI
+
+To change the schedule, edit the cron expression:
 ```yaml
-on:
-  schedule:
-    - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
+schedule:
+  - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
 ```
 
-Common schedules:
-- `'0 9 * * 1'` - Every Monday at 9 AM
-- `'0 9 * * *'` - Every day at 9 AM
-- `'0 9 1 * *'` - First day of every month at 9 AM
+## Step 5: Test Locally (Optional but Recommended)
 
-### Adding New AI Models
+### 5.1 Install Dependencies
 
-1. **Get API Key** for the model
-2. **Add to GitHub Secrets** (e.g., `DEEPSEEK_API_KEY`)
-3. **Implement Model Class** in `models/` directory:
-   - Inherit from `BaseModel`
-   - Implement `query()` and `extract_metadata()` methods
-4. **Uncomment in `run_monitor.py`** (lines 62-90)
-5. **Update Database**:
-   ```sql
-   UPDATE models SET active = 1 WHERE id = 'deepseek-chat';
-   ```
-
----
-
-## 🗂️ File Structure
-
-```
-aieo-monitor/
-├── config/
-│   └── queries.json              # Test queries configuration
-├── models/
-│   ├── base_model.py             # Abstract base class
-│   ├── gpt5_model.py             # OpenAI GPT-5
-│   ├── gpt5_mini_model.py        # OpenAI GPT-5-mini
-│   ├── gpt5_nano_model.py        # OpenAI GPT-5-nano
-│   ├── claude_model.py           # Anthropic Claude
-│   ├── deepseek_model.py         # DeepSeek (stub)
-│   ├── grok_model.py             # Grok (stub)
-│   ├── perplexity_model.py       # Perplexity (stub)
-│   └── llama_model.py            # Llama (stub)
-├── database/
-│   ├── schema.sql                # MySQL database schema
-│   └── operations.py             # Database CRUD operations
-├── utils/
-│   └── __init__.py
-├── run_monitor.py                # Main orchestrator script
-├── requirements.txt              # Python dependencies
-├── monitor.php                   # Dashboard for Bluehost
-└── SETUP.md                      # This file
+```bash
+cd aieo-monitor
+pip install -r requirements.txt
 ```
 
----
+### 5.2 Create .env File
 
-## 🔍 Database Schema
+Create a `.env` file in the `aieo-monitor/` directory with your credentials:
 
-### Tables
+```bash
+# AI Model API Keys
+OPENAI_API_KEY=your_openai_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+PERPLEXITY_API_KEY=your_perplexity_api_key_here
 
-**queries** - Test queries
+# MySQL Database Connection
+MYSQL_HOST=your_mysql_host_here
+MYSQL_DATABASE=your_database_name_here
+MYSQL_USER=your_mysql_username_here
+MYSQL_PASSWORD=your_mysql_password_here
+```
+
+⚠️ **CRITICAL SECURITY WARNING:** 
+- **NEVER commit your `.env` file to GitHub** - it contains your API keys and database passwords
+- The `.env` file is already in `.gitignore` to prevent accidental commits
+- If you accidentally commit API keys, **immediately revoke them** and generate new ones
+- For production (GitHub Actions), use GitHub Secrets instead (see Step 4)
+
+### 5.3 Test Database Connection
+
+You can create a simple test script or run:
+```bash
+python run_monitor.py
+```
+
+This will:
+- Connect to your database
+- Load queries from `config/queries.json`
+- Execute queries across all configured models
+- Store results in your database
+
+**Note:** This will make real API calls and may incur costs. Start with a small number of queries or disable some models.
+
+## Step 6: Deploy PHP Dashboard (Optional)
+
+If you want a web dashboard to view results:
+
+1. Upload `monitor.php` to your web server
+2. Update database connection details in `monitor.php` (if different from environment variables)
+3. Access the dashboard at `https://yourdomain.com/monitor.php`
+
+**Note:** The dashboard reads directly from MySQL, so make sure it can connect to the same database.
+
+## Step 7: Verify Everything Works
+
+### 7.1 Manual GitHub Actions Run
+
+1. Go to your repository on GitHub
+2. Click "Actions" tab
+3. Select "AI Citation Monitor" workflow
+4. Click "Run workflow" → "Run workflow"
+5. Watch the logs to ensure it completes successfully
+
+### 7.2 Check Database
+
+Query your database to verify data is being stored:
 ```sql
-id, query_text, category, priority, active, created_at
+SELECT * FROM responses ORDER BY timestamp DESC LIMIT 10;
+SELECT * FROM runs ORDER BY started_at DESC LIMIT 5;
 ```
 
-**models** - AI models being tested
-```sql
-id, name, provider, active, created_at
-```
+### 7.3 Check Dashboard
 
-**runs** - Each execution (weekly cron)
-```sql
-run_id, started_at, completed_at, status, queries_executed, errors_count, notes
-```
+If you deployed the PHP dashboard, visit it and verify:
+- Statistics are displaying
+- Recent citations are showing
+- Charts are rendering
 
-**responses** - All query results
-```sql
-id, run_id, timestamp, query_id, model_id, query_text, response, 
-paintballevents_referenced, search_query, cited_urls, response_time_ms, error
-```
+## Troubleshooting
 
-### Views
+### GitHub Actions Fails to Connect to Database
 
-**model_performance** - Aggregate model statistics
-**query_performance** - Aggregate query statistics
-**recent_citations** - Latest successful citations
+- Verify MySQL remote access is enabled
+- Check that `MYSQL_HOST` includes port if needed (e.g., `host:3306`)
+- Ensure firewall allows connections from GitHub Actions IPs
+- Test connection manually with MySQL client
 
----
+### No Models Initialize
 
-## 🛠️ Troubleshooting
+- Check that API keys are correctly set in GitHub Secrets
+- Verify API keys are valid and have credits/quota
+- Check GitHub Actions logs for specific error messages
 
-### GitHub Actions Fails
+### Empty Responses
 
-**Error: "Could not connect to MySQL"**
-- Check that Remote MySQL is enabled in Bluehost cPanel
-- Verify MYSQL_HOST is correct (try IP address instead of domain)
-- Check MySQL user has remote access permissions
+- Some models may return empty responses for certain queries
+- Check API rate limits
+- Verify your API keys have sufficient quota
+- Review model-specific error messages in logs
 
-**Error: "No module named 'pymysql'"**
-- Requirements.txt issue - check workflow logs
-- Ensure pip cache is working
+### Database Schema Errors
 
-**Error: "No models initialized"**
-- Check that API keys are set in GitHub Secrets
-- Verify secret names match exactly (case-sensitive)
+- Ensure you ran the complete `schema.sql` file
+- Check that your MySQL version supports JSON columns (MySQL 5.7+)
+- Verify foreign key constraints are working
 
-### Dashboard Shows No Data
+## Next Steps
 
-**Blank page or errors**
-- Check PHP error logs in cPanel
-- Verify database credentials in monitor.php
-- Ensure database has data: `SELECT COUNT(*) FROM responses;`
+Once everything is working:
 
-**Connection errors**
-- On Bluehost, use 'localhost' as MYSQL_HOST, not domain name
-- Check MySQL user has permissions on the database
+1. **Customize queries** - Add queries relevant to your domain
+2. **Add more models** - Uncomment additional models in `run_monitor.py` if you have API keys
+3. **Adjust schedule** - Change the cron schedule in `.github/workflows/monitor.yml`
+4. **Customize dashboard** - Modify `monitor.php` to match your branding
+5. **Monitor costs** - Track API usage to manage costs
 
-### Queries Not Running
+## Cost Estimates
 
-**No errors but no data**
-- Check GitHub Actions logs for actual errors
-- Verify queries.json is valid JSON
-- Check that models are marked as active in database
+Approximate monthly costs (varies by usage):
+- **GitHub Actions**: FREE (within 2,000 min/month)
+- **Database hosting**: Usually included in shared hosting
+- **API calls**: $1-10/month depending on:
+  - Number of queries
+  - Number of models
+  - Frequency of runs
+  - Response length
 
----
+Example: 9 queries × 4 models × 4 runs/month = 144 API calls/month ≈ $2-5/month
 
-## 📊 Monitoring & Maintenance
+## Support
 
-### Weekly Checklist
+If you encounter issues:
+1. Check GitHub Actions logs for error messages
+2. Review database connection settings
+3. Verify API keys are valid
+4. Check that all dependencies are installed correctly
 
-1. Check GitHub Actions run status
-2. Review dashboard for new citations
-3. Monitor error rates
-4. Check citation trends
-
-### Monthly Tasks
-
-1. Review query performance - adjust as needed
-2. Check for API key expiration
-3. Update model list if new models available
-4. Optimize slow queries
-
-### Yearly Tasks
-
-1. Rotate API keys
-2. Review and archive old data
-3. Update dependencies (requirements.txt)
-
----
-
-## 🔐 Security Notes
-
-1. **Never commit API keys** - always use GitHub Secrets
-2. **Use strong MySQL passwords** - generate random 20+ char passwords
-3. **Restrict Remote MySQL access** - whitelist specific IPs when possible
-4. **Keep dependencies updated** - run `pip list --outdated` periodically
-5. **Monitor usage/costs** - set up billing alerts for API providers
-
----
-
-## 📈 Future Enhancements
-
-### Planned Features
-
-- [ ] Email alerts when citation rate drops
-- [ ] Competitor tracking (which sites ARE being cited?)
-- [ ] Query A/B testing framework
-- [ ] Historical trend analysis
-- [ ] REST API for programmatic access
-- [ ] Mobile-responsive dashboard
-- [ ] Export data to CSV/JSON
-
-### Adding New Models
-
-Ready to implement when API access is available:
-- **DeepSeek** - Stub ready in `models/deepseek_model.py`
-- **Grok** - Stub ready in `models/grok_model.py`
-- **Perplexity** - Stub ready in `models/perplexity_model.py`
-- **Llama** - Stub ready in `models/llama_model.py`
-
-Just implement the `query()` and `extract_metadata()` methods!
-
----
-
-## 📞 Support
-
-For issues or questions:
-1. Check GitHub Actions logs first
-2. Review Bluehost error logs (cPanel → Error Log)
-3. Check database for actual data
-4. Review this setup guide
-
----
-
-## 🎯 Success Criteria
-
-Your setup is working correctly when:
-
-✅ GitHub Actions workflow runs weekly without errors
-✅ Database receives new records each week
-✅ Dashboard displays data and charts correctly
-✅ Citation metrics are being tracked
-✅ No API errors in logs
-
----
-
-**Last Updated**: October 2025
-**Version**: 1.0.0
-
+For questions about the codebase, refer to:
+- `README.md` - Project overview
+- `ARCHITECTURE.md` - System architecture details
+- Model implementations in `models/` directory

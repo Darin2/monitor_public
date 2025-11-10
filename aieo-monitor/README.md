@@ -288,9 +288,7 @@ Current baseline (before optimization):
 # Install dependencies
 pip install -r requirements.txt
 
-# Create .env file
-cp .env.example .env
-# Edit .env with your credentials
+# Create .env file with your credentials (see SETUP.md for details)
 
 # Run monitor
 python run_monitor.py

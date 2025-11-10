@@ -1,20 +1,13 @@
-# AI Citation Monitor Dependencies
+# AI Citation Monitor - Python Dependencies
+# Install with: pip install -r requirements.txt
 
-# Core dependencies
+# Environment variable management
 python-dotenv>=1.0.0
 
 # Database
-PyMySQL>=1.1.0
+pymysql>=1.1.0
 
 # AI Model APIs
-openai>=1.12.0          # OpenAI GPT-4o
-anthropic>=0.18.0       # Anthropic Claude
+openai>=1.0.0
+anthropic>=0.34.0
 
-# Future model dependencies (uncomment when implementing):
-# deepseek-api>=1.0.0   # DeepSeek
-# xai>=1.0.0            # Grok (xAI)
-# perplexity>=1.0.0     # Perplexity
-# together>=1.0.0       # Together AI (for Llama)
-
-# Utilities
-requests>=2.31.0        # HTTP requests (for future webhooks)
