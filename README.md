@@ -149,7 +149,6 @@ monitor/
 │   ├── monitor.php            # PHP dashboard (runs on Bluehost)
 │   ├── SETUP.md              # Detailed setup guide
 │   └── README.md             # Module documentation
-├── aieo-optimization/         # SEO optimization tools
 └── README.md                 # This file
 ```
 
