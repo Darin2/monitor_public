@@ -87,11 +87,15 @@ AI search is rapidly becoming how users discover events and information. Underst
 
 ## Current Test Queries
 
-1. "Find paintball events in Texas in 2025"
-2. "Find paintball events in Texas in 2025 and list the websites you referenced"
-3. "What paintball tournaments are happening in Texas in 2025?"
-4. "Find upcoming paintball scenario games and tournaments in Texas for 2025"
-5. "Where can I find paintball events in Texas?"
+1. "Find paintball scenario games in Texas for 2025"
+2. "Where can I find scenario paintball events near me?"
+3. "What are the upcoming paintball scenario games and big games in 2025?"
+4. "Find magfed paintball events in Texas"
+5. "Where can I play scenario paintball in Texas?"
+6. "What paintball big games are happening in 2025?"
+7. "Find upcoming scenario and magfed paintball events"
+8. "Where are paintball scenario games in Texas in 2025?"
+9. "Find paintball events in Texas in 2025"
 
 ## Quick Start
 
