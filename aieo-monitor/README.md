@@ -154,6 +154,114 @@ on:
 4. Uncomment in `run_monitor.py`
 5. Update database: `UPDATE models SET active = 1 WHERE id = 'model-id';`
 
+## 💡 Implementation Guide
+
+If you're considering implementing a similar AI citation monitoring system, here's what you need to know:
+
+### When This Approach Makes Sense
+
+✅ **Good fit if:**
+- You want to track your website's visibility in AI search results
+- You need historical data to measure SEO/AIEO improvements
+- You want to compare performance across multiple AI platforms
+- You have a shared hosting provider (like Bluehost) with PHP/MySQL
+- You want a cost-effective solution (free GitHub Actions + minimal API costs)
+
+❌ **Consider alternatives if:**
+- You need real-time monitoring (this runs daily)
+- You're tracking hundreds of queries (API costs scale linearly)
+- You need complex analytics or ML-based insights
+- You don't have access to a MySQL database
+
+### Prerequisites
+
+**Required:**
+- GitHub account (for free Actions)
+- MySQL database (shared hosting works fine)
+- Web server with PHP support (for dashboard)
+- API keys for AI models you want to monitor
+
+**Recommended:**
+- Basic Python knowledge (to customize queries/models)
+- Basic PHP knowledge (to customize dashboard)
+- Understanding of SQL (to query the database directly if needed)
+
+### Key Architectural Decisions
+
+1. **GitHub Actions vs. Server-based**
+   - ✅ **GitHub Actions**: Free, no server maintenance, scales automatically
+   - ❌ **Server-based**: Requires Python hosting, more complex setup
+
+2. **MySQL vs. Other Databases**
+   - ✅ **MySQL**: Works great with shared hosting, well-supported
+   - Consider PostgreSQL if you need advanced features or have dedicated hosting
+
+3. **PHP Dashboard vs. Modern Framework**
+   - ✅ **PHP**: Simple, works on any shared hosting, no dependencies
+   - Consider React/Vue if you need complex interactivity or have a modern stack
+
+### Cost Considerations
+
+**Monthly costs (approximate):**
+- GitHub Actions: **FREE** (within 2,000 min/month limit)
+- Database hosting: **Included** in most shared hosting plans
+- Dashboard hosting: **Included** in shared hosting
+- API calls: **$1-4/month** (depends on number of queries/models)
+
+**Cost factors:**
+- Number of queries × Number of models × Frequency = Total API calls
+- Example: 9 queries × 5 models × 30 days = 1,350 API calls/month
+- Most AI APIs charge per token, so longer responses cost more
+
+### Setup Complexity
+
+**Time investment:**
+- Initial setup: 1-2 hours
+- Customization: 1-4 hours (depending on needs)
+- Ongoing maintenance: Minimal (mostly monitoring)
+
+**Technical difficulty:**
+- Basic setup: ⭐⭐ (intermediate)
+- Customization: ⭐⭐⭐ (advanced)
+
+### Alternatives to Consider
+
+1. **Third-party services** (if budget allows)
+   - AI SEO tools that track citations
+   - More features but higher cost
+
+2. **Simpler approach** (if you only need basic tracking)
+   - Manual queries + spreadsheet
+   - No automation but zero setup
+
+3. **More complex approach** (if you need advanced features)
+   - Dedicated server with full Python stack
+   - More control but more maintenance
+
+### Getting Started
+
+1. **Fork this repository** as a starting point
+2. **Review the architecture** to understand the data flow
+3. **Customize queries** in `config/queries.json` for your domain
+4. **Set up your database** using `database/schema.sql`
+5. **Configure GitHub Secrets** with your API keys
+6. **Deploy dashboard** to your web server
+
+See [SETUP.md](SETUP.md) for detailed step-by-step instructions.
+
+### 💡 Pro Tip: Using Cursor AI
+
+This entire monitoring system was built with significant help from **Cursor** (an AI-powered code editor). If you're implementing a similar system, Cursor can be extremely helpful for:
+
+- Understanding and customizing the codebase
+- Adding new AI model integrations
+- Debugging database connection issues
+- Customizing the PHP dashboard
+- Writing SQL queries for custom analytics
+- Troubleshooting API integration problems
+
+Cursor's AI assistance makes it much easier to adapt this system to your specific needs, even if you're not deeply familiar with Python or PHP.
+
 ## 🔐 Security
 
 - ✅ API keys stored in GitHub Secrets
